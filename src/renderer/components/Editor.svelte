@@ -1,23 +1,36 @@
 <!--
-  Editor.svelte — Monaco Code Editor with Tabs (Tauri Edition)
+  Editor.svelte — Monaco Code Editor with Tabs
   
-  Monaco editor — same as VS Code's editor engine.
-  Uses api.writeFile() for saving instead of Electron IPC.
+  Monaco is the same editor engine that powers VS Code.
+  It gives us:
+  - Syntax highlighting for 80+ languages
+  - IntelliSense (autocomplete) for TypeScript/JavaScript
+  - Find and replace (Ctrl+F, Ctrl+H)
+  - Multi-cursor editing (Alt+Click)
+  - Bracket matching, auto-indent, minimap
+  - Code folding, go to line, command palette
+  
+  We wrap it in a Svelte component and add tabs on top.
 -->
 
 <script lang="ts">
   import { onMount } from 'svelte';
   import { store } from '../stores/app.svelte.ts';
-  import * as api from '../lib/api';
 
   let editorContainer: HTMLDivElement;
-  let editor: any = null;
-  let monaco: any = null;
+  let editor: any = null;           // Monaco editor instance
+  let monaco: any = null;           // Monaco module
+
+  // Track models (each open file gets its own "model" — Monaco's term for a document)
   let models: Map<string, any> = new Map();
 
   onMount(async () => {
+    // Dynamic import — Monaco is big, so we load it async
     monaco = await import('monaco-editor');
 
+    // ── Configure Monaco ──────────────────────
+    
+    // Set the dark theme (we customize it to match our UI)
     monaco.editor.defineTheme('forge-dark', {
       base: 'vs-dark',
       inherit: true,
@@ -54,6 +67,7 @@
       },
     });
 
+    // ── Create Editor ──────────────────────────
     editor = monaco.editor.create(editorContainer, {
       theme: 'forge-dark',
       fontFamily: "'JetBrains Mono', 'Cascadia Code', Consolas, monospace",
@@ -68,17 +82,20 @@
       bracketPairColorization: { enabled: true },
       guides: { bracketPairs: true, indentation: true },
       scrollBeyondLastLine: false,
-      automaticLayout: true,
+      automaticLayout: true,        // Auto-resize when container changes
       wordWrap: 'off',
       tabSize: 2,
       formatOnPaste: true,
       suggestOnTriggerCharacters: true,
       quickSuggestions: true,
       parameterHints: { enabled: true },
-      accessibilitySupport: 'off',
+      // Accessible features
+      accessibilitySupport: 'off',  // Faster rendering
     });
 
-    // Ctrl+S — Save
+    // ── Keyboard Shortcuts ─────────────────────
+    
+    // Ctrl+S — Save current file
     editor.addAction({
       id: 'forge-save',
       label: 'Save File',
@@ -86,6 +103,10 @@
       run: () => saveCurrentFile(),
     });
 
+    // Ctrl+Shift+P — Quick command palette (like VS Code)
+    // (Monaco has this built in, but we can add custom commands)
+
+    // Track content changes to mark tab as modified
     editor.onDidChangeModelContent(() => {
       const tab = store.activeTab;
       if (tab && editor.getModel()) {
@@ -96,10 +117,13 @@
       }
     });
 
+    // If a file is already open, show it
     syncEditorToActiveTab();
   });
 
+  // ── React to tab changes ───────────────────
   $effect(() => {
+    // This runs whenever store.activeTabIndex changes
     const _ = store.activeTabIndex;
     syncEditorToActiveTab();
   });
@@ -107,18 +131,21 @@
   function syncEditorToActiveTab() {
     if (!editor || !monaco) return;
     const tab = store.activeTab;
-
+    
     if (!tab) {
+      // No tabs open — show empty state
       editor.setModel(null);
       return;
     }
 
+    // Get or create a model for this file
     let model = models.get(tab.path);
     if (!model) {
       const uri = monaco.Uri.parse('file://' + tab.path.replace(/\\/g, '/'));
       model = monaco.editor.createModel(tab.content, tab.language, uri);
       models.set(tab.path, model);
 
+      // Track changes on this specific model
       model.onDidChangeContent(() => {
         const t = store.openTabs.find(t => t.path === tab.path);
         if (t) t.modified = true;
@@ -129,24 +156,23 @@
     editor.focus();
   }
 
+  /** Save the current file to disk */
   async function saveCurrentFile() {
     const tab = store.activeTab;
     if (!tab || !editor) return;
 
     const content = editor.getValue();
-    const success = await api.writeFile(tab.path, content);
+    const success = await window.api.writeFile(tab.path, content);
     if (success) {
       tab.content = content;
       tab.modified = false;
     }
   }
 
-  // Expose editor for ChatPanel auto-context
-  export function getEditor() { return editor; }
-  export function getMonaco() { return monaco; }
-
+  /** Close a tab */
   function closeTab(index: number) {
     const tab = store.openTabs[index];
+    // Clean up the Monaco model
     const model = models.get(tab.path);
     if (model) {
       model.dispose();
@@ -154,7 +180,8 @@
     }
 
     store.openTabs.splice(index, 1);
-
+    
+    // Adjust active index
     if (store.activeTabIndex >= store.openTabs.length) {
       store.activeTabIndex = Math.max(0, store.openTabs.length - 1);
     }
@@ -162,6 +189,7 @@
   }
 </script>
 
+<!-- Tab bar -->
 {#if store.openTabs.length > 0}
   <div class="tab-bar">
     {#each store.openTabs as tab, i}
@@ -172,7 +200,9 @@
         title={tab.path}
         role="tab"
       >
-        <span class="tab-name">{tab.name}</span>
+        <span class="tab-name">
+          {tab.name}
+        </span>
         {#if tab.modified}
           <span class="tab-dot">●</span>
         {/if}
@@ -184,6 +214,7 @@
   </div>
 {/if}
 
+<!-- Editor container (Monaco mounts here) -->
 <div class="editor-wrapper" class:empty={store.openTabs.length === 0}>
   {#if store.openTabs.length === 0}
     <div class="empty-state">
@@ -197,6 +228,7 @@
 </div>
 
 <style>
+  /* ─── Tab Bar ──────────────────────────── */
   .tab-bar {
     display: flex;
     background: var(--bg-surface);
@@ -219,37 +251,83 @@
     flex-shrink: 0;
   }
 
-  .tab:hover { background: var(--bg-hover); color: var(--text-primary); }
+  .tab:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
   .tab.active {
     background: var(--bg-base);
     color: var(--text-primary);
     border-bottom: 2px solid var(--accent);
   }
 
-  .tab-dot { color: var(--accent); font-size: 10px; }
+  .tab-dot {
+    color: var(--accent);
+    font-size: 10px;
+  }
 
   .tab-close {
-    width: 18px; height: 18px;
-    display: flex; align-items: center; justify-content: center;
-    border-radius: 3px; font-size: 14px;
-    color: var(--text-muted); opacity: 0; transition: all 0.1s;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    font-size: 14px;
+    color: var(--text-muted);
+    opacity: 0;
+    transition: all 0.1s;
   }
   .tab:hover .tab-close { opacity: 1; }
-  .tab-close:hover { background: var(--bg-active); color: var(--text-primary); }
-
-  .editor-wrapper { flex: 1; position: relative; overflow: hidden; }
-  .monaco-container { width: 100%; height: 100%; }
-  .monaco-container.hidden { display: none; }
-
-  .empty-state {
-    display: flex; flex-direction: column; align-items: center;
-    justify-content: center; height: 100%; gap: 8px; color: var(--text-muted);
+  .tab-close:hover {
+    background: var(--bg-active);
+    color: var(--text-primary);
   }
-  .empty-icon { font-size: 48px; margin-bottom: 8px; opacity: 0.3; }
-  .hint { font-size: 12px; }
+
+  /* ─── Editor ───────────────────────────── */
+  .editor-wrapper {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .monaco-container {
+    width: 100%;
+    height: 100%;
+  }
+
+  .monaco-container.hidden {
+    display: none;
+  }
+
+  /* ─── Empty State ──────────────────────── */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 8px;
+    color: var(--text-muted);
+  }
+
+  .empty-icon {
+    font-size: 48px;
+    margin-bottom: 8px;
+    opacity: 0.3;
+  }
+
+  .hint {
+    font-size: 12px;
+  }
+
   kbd {
-    padding: 2px 6px; background: var(--bg-raised);
-    border: 1px solid var(--border-bright); border-radius: 3px;
-    font-family: var(--font-mono); font-size: 11px;
+    padding: 2px 6px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border-bright);
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: 11px;
   }
 </style>

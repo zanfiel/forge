@@ -1,9 +1,7 @@
 node_modules/
 dist/
-target/
+release/
+.svelte-kit/
+*.exe
+*.log
 .env
-*.bak
-*.tmp
-.DS_Store
-Thumbs.db
-AGENTS.md

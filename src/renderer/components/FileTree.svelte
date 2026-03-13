@@ -1,13 +1,17 @@
 <!--
-  FileTree.svelte — Project File Browser (Tauri Edition)
+  FileTree.svelte — Project File Browser
   
-  Identical to Electron version but uses api.readFile() from Tauri invoke.
+  Shows the folder structure as an expandable tree.
+  Click a file to open it in the editor.
+  
+  This is a RECURSIVE component — a folder can contain folders,
+  which contain folders, etc. The TreeNode renders itself for children.
 -->
 
 <script lang="ts">
   import { store, detectLanguage, type FileEntry, type OpenTab } from '../stores/app.svelte.ts';
-  import * as api from '../lib/api';
 
+  /** Open a file in the editor */
   async function openFile(entry: FileEntry) {
     const existingIndex = store.openTabs.findIndex(t => t.path === entry.path);
     if (existingIndex !== -1) {
@@ -15,7 +19,7 @@
       return;
     }
 
-    const content = await api.readFile(entry.path);
+    const content = await window.api.readFile(entry.path);
     if (content === null) return;
 
     const tab: OpenTab = {
@@ -30,6 +34,7 @@
     store.activeTabIndex = store.openTabs.length - 1;
   }
 
+  /** Track which folders are expanded */
   let expandedPaths = $state<Set<string>>(new Set());
 
   function toggleFolder(path: string) {
@@ -38,19 +43,20 @@
     } else {
       expandedPaths.add(path);
     }
+    // Trigger reactivity by reassigning
     expandedPaths = new Set(expandedPaths);
   }
 
   function isExpanded(path: string, depth: number): boolean {
+    // Auto-expand first level
     if (depth < 1 && !expandedPaths.has('__init')) return true;
     return expandedPaths.has(path);
   }
-
   function fileIcon(name: string): string {
     const ext = name.split('.').pop()?.toLowerCase() || '';
     const icons: Record<string, string> = {
       ts: '🔷', tsx: '⚛️', js: '🟨', jsx: '⚛️',
-      svelte: '🔶', vue: '💚',
+      svelte: '🔶', vue: '💚', 
       rs: '🦀', go: '🐹', py: '🐍',
       html: '🌐', css: '🎨', scss: '🎨',
       json: '📋', yaml: '📋', yml: '📋', toml: '📋',
@@ -68,21 +74,27 @@
   }
 </script>
 
+<!-- Search bar at top -->
 <div class="tree-header">
   <span class="tree-title">EXPLORER</span>
 </div>
 
+<!-- File tree -->
 <div class="tree-scroll">
   {#each store.fileTree as entry}
     {@render treeNode(entry, 0)}
   {/each}
 </div>
 
+<!-- 
+  Svelte 5 snippet — a reusable template block.
+  This calls itself recursively for directories.
+-->
 {#snippet treeNode(entry: FileEntry, depth: number)}
   {#if entry.type === 'directory'}
     {@render folderNode(entry, depth)}
   {:else}
-    <button
+    <button 
       class="tree-item file"
       class:active={store.openTabs[store.activeTabIndex]?.path === entry.path}
       style="padding-left: {12 + depth * 16}px"
@@ -96,7 +108,7 @@
 
 {#snippet folderNode(entry: FileEntry, depth: number)}
   {@const expanded = isExpanded(entry.path, depth)}
-  <button
+  <button 
     class="tree-item folder"
     style="padding-left: {12 + depth * 16}px"
     onclick={() => toggleFolder(entry.path)}
@@ -147,8 +159,15 @@
     text-align: left;
   }
 
-  .tree-item:hover { background: var(--bg-hover); color: var(--text-primary); }
-  .tree-item.active { background: var(--accent-dim); color: var(--accent-hover); }
+  .tree-item:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  .tree-item.active {
+    background: var(--accent-dim);
+    color: var(--accent-hover);
+  }
 
   .chevron {
     font-size: 8px;
@@ -157,7 +176,9 @@
     width: 12px;
     text-align: center;
   }
-  .chevron.open { transform: rotate(90deg); }
+  .chevron.open {
+    transform: rotate(90deg);
+  }
 
   .file-icon, .folder-icon {
     font-size: 14px;
@@ -172,5 +193,7 @@
     white-space: nowrap;
   }
 
-  .folder-name { font-weight: 500; }
+  .folder-name {
+    font-weight: 500;
+  }
 </style>

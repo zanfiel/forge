@@ -1,5 +1,13 @@
 /**
  * Stores — Shared state for the whole app.
+ * 
+ * In Svelte 5, module-level $state exports can't be reassigned from
+ * other components. So we wrap everything in a single reactive object.
+ * 
+ * Usage in components:
+ *   import { store } from '../stores/app.svelte.ts';
+ *   store.projectDir = '/some/path';   // ✓ works
+ *   let x = store.projectDir;          // ✓ reactive
  */
 
 // ─── Types ──────────────────────────────────
@@ -34,89 +42,6 @@ export interface ToolCall {
   result?: string;
 }
 
-export interface PendingEdit {
-  toolCallId: string;
-  file: string;
-  oldContent: string;
-  newContent: string;
-}
-
-// ─── Checkpoint Types ────────────────────────
-
-export interface Checkpoint {
-  id: string;
-  timestamp: number;
-  description: string;
-  files: Map<string, string>; // path → content before change
-}
-
-// ─── Instructor Types ───────────────────────
-
-export type ExerciseType = 'fill-blank' | 'write-function' | 'fix-bug' | 'free-write' | 'predict-output' | 'refactor';
-
-export type Difficulty = 'beginner' | 'intermediate' | 'advanced';
-
-export interface Exercise {
-  id: string;
-  title: string;
-  type: ExerciseType;
-  difficulty: Difficulty;
-  language: string;
-  /** What the student needs to do — plain English */
-  goal: string;
-  /** Starter code loaded into editor. Blanks marked with __BLANK__ */
-  skeleton: string;
-  /** The correct/expected solution (for validation) */
-  solution: string;
-  /** 3 progressive hints: nudge → approach → nearly-there */
-  hints: [string, string, string];
-  /** Concepts this exercise teaches */
-  concepts: string[];
-  /** Test cases (input → expected output) for validation */
-  tests?: { input: string; expected: string }[];
-}
-
-export interface LessonSection {
-  id: string;
-  title: string;
-  /** Short explanation before exercises (markdown) */
-  explanation: string;
-  exercises: Exercise[];
-}
-
-export interface Track {
-  id: string;
-  name: string;
-  language: string;
-  monacoLang: string;
-  icon: string;
-  description: string;
-  sections: LessonSection[];
-}
-
-export interface InstructorState {
-  /** Which track is active (null = track selection screen) */
-  activeTrackId: string | null;
-  /** Current section index within the track */
-  sectionIndex: number;
-  /** Current exercise index within the section */
-  exerciseIndex: number;
-  /** How many hints revealed for current exercise (0-3) */
-  hintsRevealed: number;
-  /** Exercise status: idle, working, submitted, passed, failed */
-  status: 'idle' | 'working' | 'submitted' | 'passed' | 'failed';
-  /** AI feedback on submission */
-  feedback: string;
-  /** Completed exercise IDs (persisted) */
-  completed: Set<string>;
-  /** Number of attempts on current exercise */
-  attempts: number;
-  /** Whether instructor panel is in chat sub-mode (ask questions) */
-  chatMode: boolean;
-  /** Instructor chat messages (separate from main chat) */
-  chatMessages: ChatMessage[];
-}
-
 // ─── The Store ──────────────────────────────
 
 class AppStore {
@@ -127,30 +52,13 @@ class AppStore {
   chatMessages = $state<ChatMessage[]>([]);
   sessionId = $state(`forge-${Date.now()}`);
   isAiThinking = $state(false);
-  pendingEdits = $state<PendingEdit[]>([]);
-  tokenUsage = $state({ input: 0, output: 0, cached: 0 });
-  /** Which right panel is showing: 'chat' or 'instructor' */
-  rightPanel = $state<'chat' | 'instructor'>('chat');
-  checkpoints = $state<Checkpoint[]>([]);
   panels = $state({
     fileTree: true,
     chat: true,
     terminal: false,
   });
 
-  instructor = $state<InstructorState>({
-    activeTrackId: null,
-    sectionIndex: 0,
-    exerciseIndex: 0,
-    hintsRevealed: 0,
-    status: 'idle',
-    feedback: '',
-    completed: new Set(),
-    attempts: 0,
-    chatMode: false,
-    chatMessages: [],
-  });
-
+  /** Get the active tab (or null if none open) */
   get activeTab(): OpenTab | null {
     return this.openTabs[this.activeTabIndex] ?? null;
   }
@@ -160,39 +68,54 @@ export const store = new AppStore();
 
 // ─── Utility Functions ──────────────────────
 
+/** Detect language from file extension (for Monaco syntax highlighting) */
 export function detectLanguage(filename: string): string {
   const ext = filename.split('.').pop()?.toLowerCase() || '';
   const map: Record<string, string> = {
+    // JavaScript / TypeScript
     ts: 'typescript', tsx: 'typescriptreact',
     js: 'javascript', jsx: 'javascriptreact',
     mjs: 'javascript', cjs: 'javascript',
     mts: 'typescript', cts: 'typescript',
+    // Web frameworks
     svelte: 'html', vue: 'html', astro: 'html',
+    // Systems
     rs: 'rust', go: 'go', c: 'c', h: 'c',
     cpp: 'cpp', cc: 'cpp', cxx: 'cpp', hpp: 'cpp',
     cs: 'csharp', java: 'java', kt: 'kotlin', scala: 'scala',
+    // Scripting
     py: 'python', rb: 'ruby', lua: 'lua', pl: 'perl',
     php: 'php', r: 'r', jl: 'julia',
+    // Shell
     sh: 'shell', bash: 'shell', zsh: 'shell', fish: 'shell',
     ps1: 'powershell', bat: 'bat', cmd: 'bat',
+    // Web
     html: 'html', htm: 'html', css: 'css', scss: 'scss',
     less: 'less', sass: 'scss',
+    // Data
     json: 'json', jsonc: 'json', yaml: 'yaml', yml: 'yaml',
     toml: 'ini', ini: 'ini', xml: 'xml', svg: 'xml',
     csv: 'plaintext',
+    // Docs
     md: 'markdown', mdx: 'markdown', txt: 'plaintext',
     rst: 'restructuredtext',
+    // Database
     sql: 'sql', prisma: 'graphql', graphql: 'graphql', gql: 'graphql',
+    // Config
     dockerfile: 'dockerfile', dockerignore: 'plaintext',
     makefile: 'shell', cmake: 'plaintext',
+    // Mobile
     dart: 'dart', swift: 'swift', m: 'objective-c',
+    // Other
     zig: 'plaintext', nim: 'plaintext', ex: 'plaintext', exs: 'plaintext',
     elm: 'plaintext', clj: 'clojure', hs: 'plaintext',
     tf: 'plaintext', hcl: 'plaintext',
     proto: 'protobuf',
+    // Misc
     lock: 'json', env: 'ini', gitignore: 'plaintext',
   };
 
+  // Handle special filenames
   const name = filename.toLowerCase();
   if (name === 'dockerfile') return 'dockerfile';
   if (name === 'makefile' || name === 'gnumakefile') return 'shell';
@@ -203,6 +126,7 @@ export function detectLanguage(filename: string): string {
   return map[ext] || 'plaintext';
 }
 
+/** Generate a unique ID */
 export function uid(): string {
   return Math.random().toString(36).slice(2, 10);
 }

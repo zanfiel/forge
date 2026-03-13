@@ -1,13 +1,15 @@
 <!--
-  TitleBar.svelte — Custom Window Title Bar (Tauri Edition)
+  TitleBar.svelte — Custom Window Title Bar
   
-  Uses data-tauri-drag-region for window dragging instead of -webkit-app-region.
-  Window controls use @tauri-apps/api/window.
+  Since we set frame: false in Electron, we need to draw our own
+  title bar with minimize/maximize/close buttons.
+  
+  The special CSS property -webkit-app-region: drag makes the bar
+  draggable (so you can move the window by dragging the title bar).
 -->
 
 <script lang="ts">
   import { store } from '../stores/app.svelte.ts';
-  import * as api from '../lib/api';
 
   interface Props {
     hasProject: boolean;
@@ -17,8 +19,9 @@
   let { hasProject, onOpenProject }: Props = $props();
   let maximized = $state(false);
 
+  // Check initial state
   $effect(() => {
-    api.isMaximized().then(v => maximized = v);
+    window.api.isMaximized().then(v => maximized = v);
   });
 
   function togglePanel(panel: 'fileTree' | 'chat' | 'terminal') {
@@ -26,7 +29,8 @@
   }
 </script>
 
-<header class="titlebar" data-tauri-drag-region>
+<header class="titlebar">
+  <!-- Left: app icon + menu -->
   <div class="titlebar-left">
     <span class="logo">⚡</span>
     <span class="app-name">Forge</span>
@@ -57,20 +61,24 @@
     {/if}
   </div>
 
-  <div class="titlebar-center" data-tauri-drag-region></div>
+  <!-- Center: draggable area (window title) -->
+  <div class="titlebar-center">
+    <!-- This empty space is draggable — you can grab it to move the window -->
+  </div>
 
+  <!-- Right: window controls -->
   <div class="titlebar-controls">
-    <button class="ctrl-btn" onclick={() => api.minimize()} title="Minimize">
+    <button class="ctrl-btn" onclick={() => window.api.minimize()} title="Minimize">
       <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6h8" stroke="currentColor" stroke-width="1.5"/></svg>
     </button>
-    <button class="ctrl-btn" onclick={async () => { await api.maximize(); maximized = !maximized; }} title="Maximize">
+    <button class="ctrl-btn" onclick={async () => { await window.api.maximize(); maximized = !maximized; }} title="Maximize">
       {#if maximized}
         <svg width="12" height="12" viewBox="0 0 12 12"><rect x="1.5" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M3.5 3V2a1 1 0 011-1h5a1 1 0 011 1v5a1 1 0 01-1 1H9" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
       {:else}
         <svg width="12" height="12" viewBox="0 0 12 12"><rect x="2" y="2" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
       {/if}
     </button>
-    <button class="ctrl-btn close" onclick={() => api.close()} title="Close">
+    <button class="ctrl-btn close" onclick={() => window.api.close()} title="Close">
       <svg width="12" height="12" viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5"/></svg>
     </button>
   </div>
@@ -83,6 +91,7 @@
     align-items: center;
     background: var(--bg-surface);
     border-bottom: 1px solid var(--border);
+    -webkit-app-region: drag;          /* Makes the whole bar draggable */
     user-select: none;
     padding: 0 8px;
   }
@@ -91,9 +100,13 @@
     display: flex;
     align-items: center;
     gap: 4px;
+    -webkit-app-region: no-drag;       /* Buttons inside aren't draggable */
   }
 
-  .logo { font-size: 16px; margin-right: 4px; }
+  .logo {
+    font-size: 16px;
+    margin-right: 4px;
+  }
 
   .app-name {
     font-weight: 600;
@@ -120,12 +133,24 @@
     color: var(--text-secondary);
     transition: all 0.15s;
   }
-  .tb-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
-  .tb-btn.active { background: var(--accent-dim); color: var(--accent); }
+  .tb-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+  .tb-btn.active {
+    background: var(--accent-dim);
+    color: var(--accent);
+  }
 
-  .titlebar-center { flex: 1; }
+  .titlebar-center {
+    flex: 1;
+    -webkit-app-region: drag;
+  }
 
-  .titlebar-controls { display: flex; }
+  .titlebar-controls {
+    display: flex;
+    -webkit-app-region: no-drag;
+  }
 
   .ctrl-btn {
     width: 46px;
@@ -136,6 +161,12 @@
     color: var(--text-secondary);
     transition: background 0.1s;
   }
-  .ctrl-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
-  .ctrl-btn.close:hover { background: var(--red); color: white; }
+  .ctrl-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+  .ctrl-btn.close:hover {
+    background: var(--red);
+    color: white;
+  }
 </style>
