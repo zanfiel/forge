@@ -1,0 +1,119 @@
+/*
+ * Forge — Global Styles
+ * 
+ * CSS variables (--name) are like constants you define once and use everywhere.
+ * This is how you make a consistent theme without repeating hex codes.
+ */
+
+/* Import system font that looks clean on all platforms */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* ─── Colors ───────────────────────────── */
+  --bg-base:    #0a0a0f;     /* Deepest background */
+  --bg-surface: #111118;     /* Panels, sidebars */
+  --bg-raised:  #1a1a24;     /* Cards, inputs */
+  --bg-hover:   #222230;     /* Hover states */
+  --bg-active:  #2a2a3a;     /* Selected/active items */
+  
+  --border:     #1e1e2e;     /* Subtle borders */
+  --border-bright: #2e2e42;  /* Emphasized borders */
+  
+  --text-primary:   #e4e4ed; /* Main text */
+  --text-secondary: #8888a0; /* Dimmed text */
+  --text-muted:     #555566; /* Very dim */
+  
+  --accent:       #7c5cfc;   /* Primary accent (purple) */
+  --accent-hover: #9070ff;
+  --accent-dim:   #7c5cfc22;
+  
+  --green:  #4ade80;
+  --red:    #f87171;
+  --yellow: #fbbf24;
+  --blue:   #60a5fa;
+  --cyan:   #22d3ee;
+  
+  /* ─── Typography ───────────────────────── */
+  --font-sans: 'Inter', -apple-system, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Consolas', monospace;
+  
+  /* ─── Spacing ──────────────────────────── */
+  --radius: 8px;
+  --radius-sm: 4px;
+  --radius-lg: 12px;
+}
+
+/* ─── Reset ──────────────────────────────── */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #app {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Scrollbars (thin, dark) ────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-bright);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ─── Selection ──────────────────────────── */
+::selection {
+  background: var(--accent-dim);
+  color: var(--text-primary);
+}
+
+/* ─── Focus ──────────────────────────────── */
+:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+
+/* ─── Buttons ────────────────────────────── */
+button {
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: var(--text-primary);
+}
+
+/* ─── Animations ─────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.animate-in {
+  animation: fadeIn 0.2s ease-out;
+}
