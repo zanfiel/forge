@@ -8,6 +8,7 @@ A lightweight, keyboard-driven editor with integrated AI chat,
 powered by Synapse and Monaco.
 
 [Quick Start](#quick-start) · [Features](#features) · [Architecture](#architecture) · [Configuration](#configuration) · [Building](#building)
+n[![License: Elastic-2.0](https://img.shields.io/badge/License-Elastic%202.0-blue)](https://www.elastic.co/licensing/elastic-license)
 
 </div>
 
