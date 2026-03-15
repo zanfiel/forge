@@ -5,3 +5,5 @@ release/
 *.exe
 *.log
 .env
+backup-public-sync-*/
+backup-public-parity-*/
