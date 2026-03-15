@@ -36,6 +36,7 @@
         case 'tool_call':
           if (!streamingMsg.toolCalls) streamingMsg.toolCalls = [];
           streamingMsg.toolCalls.push({
+            id: event.tool_call_id,
             name: event.tool_name,
             args: event.tool_args,
           });
@@ -43,6 +44,8 @@
         case 'tool_result':
           if (streamingMsg.toolCalls) {
             const tc = streamingMsg.toolCalls.find(
+              (t: ToolCall) => t.id === event.tool_call_id
+            ) || streamingMsg.toolCalls.find(
               (t: ToolCall) => t.name === event.tool_name && !t.result
             );
             if (tc) tc.result = event.tool_result;
