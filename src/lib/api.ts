@@ -234,12 +234,9 @@ export async function listProjects(): Promise<string[]> {
 
 // ─── Engram — Persistent Memory ─────────────
 //
-// Engram runs at http://127.0.0.1:4200 (local Windows primary).
-// Forge queries it directly for project context injection and stores
-// discoveries, decisions, and notes from AI conversations.
+// Web mode uses Forge backend proxy with remote failover.
+// Desktop mode uses Tauri commands with local-first failover.
 // All calls are best-effort — failure never blocks the UI.
-
-const ENGRAM_URL = 'http://127.0.0.1:4200';
 
 export interface EngramMemory {
   id: number;
@@ -255,14 +252,12 @@ export interface EngramMemory {
  */
 export async function getEngramContext(query: string, budget = 2000): Promise<string> {
   try {
-    const resp = await fetch(`${ENGRAM_URL}/context`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query, budget }),
-      signal: AbortSignal.timeout(3000),
-    });
-    if (!resp.ok) return '';
-    const data = await resp.json();
+    const data = IS_TAURI
+      ? await invoke('engram_context', { query, budget })
+      : await apiFetch('/engram/context', {
+          method: 'POST',
+          body: JSON.stringify({ query, budget }),
+        });
 
     // Prefer pre-packed context string
     if (data.context && typeof data.context === 'string') {
@@ -291,14 +286,12 @@ export async function getEngramContext(query: string, budget = 2000): Promise<st
  */
 export async function storeMemory(content: string, category: string): Promise<EngramMemory | null> {
   try {
-    const resp = await fetch(`${ENGRAM_URL}/store`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content, category, source: 'forge' }),
-      signal: AbortSignal.timeout(5000),
-    });
-    if (!resp.ok) return null;
-    const data = await resp.json();
+    const data = IS_TAURI
+      ? await invoke('engram_store', { content, category })
+      : await apiFetch('/engram/store', {
+          method: 'POST',
+          body: JSON.stringify({ content, category, source: 'forge' }),
+        });
     return data.memory ?? data ?? null;
   } catch {
     return null;
@@ -310,14 +303,12 @@ export async function storeMemory(content: string, category: string): Promise<En
  */
 export async function searchMemory(query: string, limit = 10): Promise<EngramMemory[]> {
   try {
-    const resp = await fetch(`${ENGRAM_URL}/search`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query, limit }),
-      signal: AbortSignal.timeout(3000),
-    });
-    if (!resp.ok) return [];
-    const data = await resp.json();
+    const data = IS_TAURI
+      ? await invoke('engram_search', { query, limit })
+      : await apiFetch('/engram/search', {
+          method: 'POST',
+          body: JSON.stringify({ query, limit }),
+        });
     return data.results ?? data ?? [];
   } catch {
     return [];

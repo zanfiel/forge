@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
+use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
+use std::time::{Duration, Instant};
 use tauri::State;
 
 // ─── State ──────────────────────────────────────────────
@@ -47,6 +49,60 @@ const IGNORE_DIRS: &[&str] = &[
     ".next", ".nuxt", "__pycache__", ".venv", "target",
     ".cargo", ".cache", "coverage", ".turbo",
 ];
+
+// ─── Remote Endpoints / Failover ─────────────────────────
+
+const SYNAPSE_URL: &str = "http://127.0.0.1:4300";
+const ENGRAM_LOCAL: &str = "http://127.0.0.1:4200";
+const ENGRAM_BAV: &str = "http://100.64.0.3:4200";
+const ENGRAM_ROCKY: &str = "http://100.64.0.2:4200";
+
+static LAST_PRIMARY_RECHECK: std::sync::OnceLock<Mutex<Option<Instant>>> = std::sync::OnceLock::new();
+
+fn engram_api_key() -> String {
+    env::var("ENGRAM_API_KEY")
+        .or_else(|_| env::var("FORGE_ENGRAM_API_KEY"))
+        .unwrap_or_default()
+}
+
+async fn try_engram_post(path: &str, body: serde_json::Value) -> Result<serde_json::Value, String> {
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(5))
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    let urls = [ENGRAM_LOCAL, ENGRAM_BAV, ENGRAM_ROCKY];
+    let key = engram_api_key();
+    let last_check = LAST_PRIMARY_RECHECK.get_or_init(|| Mutex::new(None));
+
+    let should_check = {
+        let guard = last_check.lock().unwrap();
+        guard.map(|t| t.elapsed() >= Duration::from_secs(60)).unwrap_or(true)
+    };
+    if should_check {
+        {
+            let mut guard = last_check.lock().unwrap();
+            *guard = Some(Instant::now());
+        }
+        let _ = client.get(format!("{}/health", ENGRAM_LOCAL)).send().await;
+    }
+
+    let mut last_err = String::from("Engram unavailable");
+    for base in urls.iter() {
+        let mut req = client.post(format!("{}{}", base, path)).json(&body);
+        if !key.is_empty() {
+            req = req.bearer_auth(&key);
+        }
+        match req.send().await {
+            Ok(resp) if resp.status().is_success() => {
+                return resp.json::<serde_json::Value>().await.map_err(|e| e.to_string());
+            }
+            Ok(resp) => last_err = format!("{} {}", base, resp.status()),
+            Err(err) => last_err = format!("{} {}", base, err),
+        }
+    }
+    Err(last_err)
+}
 
 // ─── Commands ───────────────────────────────────────────
 
@@ -168,10 +224,10 @@ fn file_stat(file_path: String) -> Option<FileStat> {
 #[tauri::command]
 async fn ai_chat(message: String, session_id: String) -> ChatResponse {
     let client = reqwest::Client::new();
-    let url = "http://127.0.0.1:4300/v1/chat";
+    let url = format!("{}/v1/chat", SYNAPSE_URL);
 
     match client
-        .post(url)
+        .post(&url)
         .json(&serde_json::json!({
             "message": message,
             "session_id": session_id,
@@ -209,10 +265,10 @@ async fn ai_chat_stream(
     use tauri::Emitter;
 
     let client = reqwest::Client::new();
-    let url = "http://127.0.0.1:4300/v1/chat/stream";
+    let url = format!("{}/v1/chat/stream", SYNAPSE_URL);
 
     let resp = client
-        .post(url)
+        .post(&url)
         .json(&serde_json::json!({
             "message": message,
             "session_id": session_id,
@@ -254,7 +310,7 @@ async fn ai_chat_stream(
 async fn confirm_edit(tool_call_id: String, accepted: bool) -> Result<(), String> {
     let client = reqwest::Client::new();
     client
-        .post("http://127.0.0.1:4300/v1/chat/confirm")
+        .post(format!("{}/v1/chat/confirm", SYNAPSE_URL))
         .json(&serde_json::json!({
             "tool_call_id": tool_call_id,
             "accepted": accepted,
@@ -263,6 +319,32 @@ async fn confirm_edit(tool_call_id: String, accepted: bool) -> Result<(), String
         .await
         .map_err(|e| format!("Confirm failed: {}", e))?;
     Ok(())
+}
+
+
+#[tauri::command]
+async fn engram_context(query: String, budget: i32) -> Result<serde_json::Value, String> {
+    try_engram_post("/context", serde_json::json!({
+        "query": query,
+        "budget": budget,
+    })).await
+}
+
+#[tauri::command]
+async fn engram_store(content: String, category: String) -> Result<serde_json::Value, String> {
+    try_engram_post("/store", serde_json::json!({
+        "content": content,
+        "category": category,
+        "source": "forge-desktop",
+    })).await
+}
+
+#[tauri::command]
+async fn engram_search(query: String, limit: i32) -> Result<serde_json::Value, String> {
+    try_engram_post("/search", serde_json::json!({
+        "query": query,
+        "limit": limit,
+    })).await
 }
 
 // ─── App Setup ──────────────────────────────────────────
@@ -286,6 +368,9 @@ pub fn run() {
             ai_chat,
             ai_chat_stream,
             confirm_edit,
+            engram_context,
+            engram_store,
+            engram_search,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

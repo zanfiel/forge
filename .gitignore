@@ -7,3 +7,5 @@ target/
 .DS_Store
 Thumbs.db
 AGENTS.md
+backup-sync-*/
+backup-deps-*/

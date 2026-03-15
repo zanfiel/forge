@@ -272,42 +272,75 @@ app.post('/api/ai/confirm', async (c) => {
 
 // ─── Engram proxy (for web/PWA mode) ─────────
 
-const ENGRAM_URL = process.env.FORGE_ENGRAM_URL || 'http://127.0.0.1:4200';
+const ENGRAM_PRIMARY = process.env.FORGE_ENGRAM_URL || 'http://100.64.0.3:4200';
+const ENGRAM_FALLBACK = process.env.FORGE_ENGRAM_FALLBACK_URL || 'http://100.64.0.2:4200';
+const ENGRAM_API_KEY = process.env.ENGRAM_API_KEY || process.env.FORGE_ENGRAM_API_KEY || '';
+let activeEngramUrl = ENGRAM_PRIMARY;
+let lastPrimaryCheck = 0;
+const ENGRAM_RECHECK_MS = 60_000;
+
+async function engramFetch(path: string, body: any, timeoutMs = 5000): Promise<Response> {
+  const urls = activeEngramUrl === ENGRAM_PRIMARY ? [ENGRAM_PRIMARY, ENGRAM_FALLBACK] : [activeEngramUrl, ENGRAM_PRIMARY, ENGRAM_FALLBACK];
+
+  if (activeEngramUrl !== ENGRAM_PRIMARY && Date.now() - lastPrimaryCheck > ENGRAM_RECHECK_MS) {
+    lastPrimaryCheck = Date.now();
+    try {
+      const resp = await fetch(`${ENGRAM_PRIMARY}/health`, { signal: AbortSignal.timeout(2000) });
+      if (resp.ok) activeEngramUrl = ENGRAM_PRIMARY;
+    } catch {}
+  }
+
+  let lastErr: any;
+  for (const base of urls) {
+    try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (ENGRAM_API_KEY) headers['Authorization'] = `Bearer ${ENGRAM_API_KEY}`;
+      const resp = await fetch(`${base}${path}`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+      if (resp.ok) {
+        activeEngramUrl = base;
+        return resp;
+      }
+      lastErr = new Error(`HTTP ${resp.status}`);
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr || new Error('Engram unavailable');
+}
 
 app.post('/api/engram/context', async (c) => {
   const body = await c.req.json();
   try {
-    const resp = await fetch(`${ENGRAM_URL}/context`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
+    const resp = await engramFetch('/context', body, 4000);
     return c.json(await resp.json());
-  } catch { return c.json({ context: '' }); }
+  } catch {
+    return c.json({ context: '' });
+  }
 });
 
 app.post('/api/engram/store', async (c) => {
   const body = await c.req.json();
   try {
-    const resp = await fetch(`${ENGRAM_URL}/store`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
+    const resp = await engramFetch('/store', body, 5000);
     return c.json(await resp.json());
-  } catch { return c.json({ error: 'Engram unavailable' }, 502); }
+  } catch {
+    return c.json({ error: 'Engram unavailable' }, 502);
+  }
 });
 
 app.post('/api/engram/search', async (c) => {
   const body = await c.req.json();
   try {
-    const resp = await fetch(`${ENGRAM_URL}/search`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
+    const resp = await engramFetch('/search', body, 4000);
     return c.json(await resp.json());
-  } catch { return c.json({ results: [] }); }
+  } catch {
+    return c.json({ results: [] });
+  }
 });
 
 // ─── Static Files (Svelte build) ────────────

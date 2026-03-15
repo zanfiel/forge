@@ -73,6 +73,7 @@
         case 'tool_call':
           if (!streamingMsg.toolCalls) streamingMsg.toolCalls = [];
           streamingMsg.toolCalls.push({
+            id: event.tool_call_id,
             name: event.tool_name,
             args: event.tool_args,
           });
@@ -80,6 +81,8 @@
         case 'tool_result':
           if (streamingMsg.toolCalls) {
             const tc = streamingMsg.toolCalls.find(
+              (t: ToolCall) => t.id === event.tool_call_id
+            ) || streamingMsg.toolCalls.find(
               (t: ToolCall) => t.name === event.tool_name && !t.result
             );
             if (tc) tc.result = event.tool_result;
@@ -104,9 +107,9 @@
           break;
         case 'usage':
           store.tokenUsage = {
-            input: event.prompt_tokens ?? 0,
-            output: event.completion_tokens ?? 0,
-            cached: event.cache_read_tokens ?? 0,
+            input: event.usage?.prompt_tokens ?? event.prompt_tokens ?? 0,
+            output: event.usage?.completion_tokens ?? event.completion_tokens ?? 0,
+            cached: event.usage?.cache_read_tokens ?? event.cache_read_tokens ?? 0,
           };
           break;
         case 'done':
