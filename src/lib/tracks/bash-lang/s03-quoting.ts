@@ -50,7 +50,7 @@ export const section: LessonSection = {
       goal: 'Use $\'...\' ANSI-C quoting to print "Col1" and "Col2" separated by a tab.',
       skeleton: `#!/bin/bash\necho ___'Col1\\tCol2'`,
       solution: `#!/bin/bash\necho \$'Col1\\tCol2'`,
-      hints: ["$'...' interprets escape sequences.", '\\t is interpreted as a tab inside $\\'...\\'.', "echo $'Col1\\tCol2'"],
+      hints: ["$'...' interprets escape sequences.", "\\t is interpreted as a tab inside $'...'.", "echo $'Col1\\tCol2'"],
       concepts: ['ansi-c-quoting'],
     },
     {

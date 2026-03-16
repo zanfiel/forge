@@ -207,15 +207,39 @@
 
   // Filter tree
   let filterQuery = $state('');
+
+  let filteredTree = $derived.by(() => {
+    if (!filterQuery) return store.fileTree;
+    const q = filterQuery.toLowerCase();
+    function filterEntries(entries: FileEntry[]): FileEntry[] {
+      return entries.flatMap(entry => {
+        if (entry.type === 'directory') {
+          const filtered = entry.children ? filterEntries(entry.children) : [];
+          if (filtered.length > 0 || entry.name.toLowerCase().includes(q)) {
+            return [{ ...entry, children: filtered }];
+          }
+          return [];
+        }
+        return entry.name.toLowerCase().includes(q) ? [entry] : [];
+      });
+    }
+    return filterEntries(store.fileTree);
+  });
 </script>
 
 <div class="tree-header">
   <span class="tree-title">EXPLORER</span>
+  <input
+    class="filter-input"
+    type="text"
+    placeholder="filter"
+    bind:value={filterQuery}
+  />
 </div>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="tree-scroll" oncontextmenu={showRootContextMenu}>
-  {#each store.fileTree as entry}
+  {#each filteredTree as entry}
     {@render treeNode(entry, 0)}
   {/each}
 
@@ -328,6 +352,23 @@
     font-weight: 600;
     letter-spacing: 1px;
     color: var(--text-muted);
+  }
+
+  .filter-input {
+    flex: 1;
+    max-width: 100px;
+    padding: 2px 6px;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text-primary);
+    font-size: 11px;
+    font-family: var(--font-sans);
+    outline: none;
+  }
+
+  .filter-input:focus {
+    border-color: var(--accent);
   }
 
   .tree-scroll {

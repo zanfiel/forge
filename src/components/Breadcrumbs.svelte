@@ -20,6 +20,11 @@
     const parts = rel.replace(/\\/g, '/').replace(/^\//, '').split('/');
     return parts;
   });
+
+  let crumbPaths = $derived.by(() => {
+    const sep = filePath.includes('\\') ? '\\' : '/';
+    return segments.map((_, i) => projectDir + sep + segments.slice(0, i + 1).join(sep));
+  });
 </script>
 
 <div class="breadcrumbs">
@@ -30,6 +35,10 @@
     <span
       class="crumb"
       class:current={i === segments.length - 1}
+      class:clickable={i < segments.length - 1}
+      onclick={i < segments.length - 1 ? () => onNavigate?.(crumbPaths[i]) : undefined}
+      role={i < segments.length - 1 ? 'button' : undefined}
+      tabindex={i < segments.length - 1 ? 0 : undefined}
     >{segment}</span>
   {/each}
 </div>
@@ -63,6 +72,10 @@
     border-radius: 3px;
     cursor: default;
     transition: all 0.1s;
+  }
+
+  .crumb.clickable {
+    cursor: pointer;
   }
 
   .crumb:hover:not(.current) {
