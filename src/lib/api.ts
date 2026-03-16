@@ -116,6 +116,33 @@ export async function stat(path: string): Promise<any> {
   return apiFetch(`/fs/stat?path=${encodeURIComponent(path)}`);
 }
 
+export async function createDir(dirPath: string): Promise<boolean> {
+  if (IS_TAURI) return invoke('create_dir', { dirPath });
+  const data = await apiFetch('/fs/mkdir', {
+    method: 'POST',
+    body: JSON.stringify({ path: dirPath }),
+  });
+  return !!data.ok;
+}
+
+export async function deletePath(filePath: string): Promise<boolean> {
+  if (IS_TAURI) return invoke('delete_path', { filePath });
+  const data = await apiFetch('/fs/delete', {
+    method: 'POST',
+    body: JSON.stringify({ path: filePath }),
+  });
+  return !!data.ok;
+}
+
+export async function renamePath(oldPath: string, newPath: string): Promise<boolean> {
+  if (IS_TAURI) return invoke('rename_path', { oldPath, newPath });
+  const data = await apiFetch('/fs/rename', {
+    method: 'POST',
+    body: JSON.stringify({ oldPath, newPath }),
+  });
+  return !!data.ok;
+}
+
 // ─── AI (Synapse) ───────────────────────────
 
 export async function chat(message: string, sessionId: string): Promise<any> {
@@ -329,6 +356,73 @@ export async function confirmEdit(toolCallId: string, accepted: boolean): Promis
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tool_call_id: toolCallId, accepted }),
     });
+  }
+}
+
+// ─── Search ─────────────────────────────────
+
+export interface SearchResult {
+  matches: Array<{
+    file: string;
+    relativePath: string;
+    line: number;
+    column: number;
+    lineContent: string;
+    matchLength: number;
+  }>;
+  totalMatches: number;
+  totalFiles: number;
+}
+
+export async function searchFiles(
+  dir: string,
+  query: string,
+  caseSensitive = false,
+  useRegex = false,
+  includePattern = '',
+  excludePattern = '',
+): Promise<SearchResult | null> {
+  try {
+    if (IS_TAURI) {
+      return await invoke('search_files', {
+        dir,
+        query,
+        caseSensitive,
+        useRegex,
+        includePattern,
+        excludePattern,
+      });
+    }
+    const data = await apiFetch('/fs/search', {
+      method: 'POST',
+      body: JSON.stringify({ dir, query, caseSensitive, useRegex, includePattern, excludePattern }),
+    });
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+// ─── Git ────────────────────────────────────
+
+export interface GitStatus {
+  branch: string;
+  isRepo: boolean;
+  modified: string[];
+  staged: string[];
+  untracked: string[];
+  ahead: number;
+  behind: number;
+}
+
+export async function gitStatus(dir: string): Promise<GitStatus | null> {
+  try {
+    if (IS_TAURI) {
+      return await invoke('git_status', { dir });
+    }
+    return await apiFetch(`/git/status?dir=${encodeURIComponent(dir)}`);
+  } catch {
+    return null;
   }
 }
 

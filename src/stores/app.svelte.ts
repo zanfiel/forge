@@ -70,9 +70,11 @@ export interface Exercise {
   /** The correct/expected solution (for validation) */
   solution: string;
   /** 3 progressive hints: nudge → approach → nearly-there */
-  hints: [string, string, string];
+  hints: string[];
   /** Concepts this exercise teaches */
   concepts: string[];
+  /** Expected output for predict-output exercises */
+  expectedOutput?: string;
   /** Test cases (input → expected output) for validation */
   tests?: { input: string; expected: string }[];
 }
@@ -116,6 +118,67 @@ export interface InstructorState {
   chatMode: boolean;
   /** Instructor chat messages (separate from main chat) */
   chatMessages: ChatMessage[];
+  /** Code review results from the analysis feature */
+  review: CodeReview | null;
+  /** Whether a code review is in progress */
+  reviewing: boolean;
+}
+
+export interface CodeReviewItem {
+  type: 'bug' | 'style' | 'pattern' | 'performance' | 'readability';
+  severity: 'info' | 'warning' | 'error';
+  line: number | null;
+  message: string;
+  suggestion: string;
+}
+
+export interface CodeReview {
+  filename: string;
+  language: string;
+  summary: string;
+  score: number;
+  items: CodeReviewItem[];
+  timestamp: number;
+}
+
+// ─── Search Types ───────────────────────────
+
+export interface SearchMatch {
+  file: string;
+  relativePath: string;
+  line: number;
+  column: number;
+  lineContent: string;
+  matchLength: number;
+}
+
+export interface SearchState {
+  query: string;
+  results: SearchMatch[];
+  isSearching: boolean;
+  totalMatches: number;
+  totalFiles: number;
+  caseSensitive: boolean;
+  useRegex: boolean;
+  includePattern: string;
+  excludePattern: string;
+}
+
+// ─── Notification Types ─────────────────────
+
+export interface Notification {
+  id: string;
+  type: 'info' | 'success' | 'warning' | 'error';
+  message: string;
+  timeout: number;
+  timestamp: number;
+}
+
+// ─── Closed Tab (for undo close) ────────────
+
+export interface ClosedTab {
+  tab: OpenTab;
+  index: number;
 }
 
 // ─── The Store ──────────────────────────────
@@ -137,6 +200,45 @@ class AppStore {
     fileTree: true,
     chat: true,
     terminal: false,
+    search: false,
+  });
+
+  /** Recently closed tabs stack (max 20) */
+  closedTabs = $state<ClosedTab[]>([]);
+
+  /** Notification toast stack */
+  notifications = $state<Notification[]>([]);
+
+  /** Project-wide search state */
+  search = $state<SearchState>({
+    query: '',
+    results: [],
+    isSearching: false,
+    totalMatches: 0,
+    totalFiles: 0,
+    caseSensitive: false,
+    useRegex: false,
+    includePattern: '',
+    excludePattern: '',
+  });
+
+  /** Git status */
+  git = $state<{
+    branch: string;
+    isRepo: boolean;
+    modified: string[];
+    staged: string[];
+    untracked: string[];
+    ahead: number;
+    behind: number;
+  }>({
+    branch: '',
+    isRepo: false,
+    modified: [],
+    staged: [],
+    untracked: [],
+    ahead: 0,
+    behind: 0,
   });
 
   instructor = $state<InstructorState>({
@@ -150,10 +252,40 @@ class AppStore {
     attempts: 0,
     chatMode: false,
     chatMessages: [],
+    review: null,
+    reviewing: false,
   });
 
   get activeTab(): OpenTab | null {
     return this.openTabs[this.activeTabIndex] ?? null;
+  }
+
+  /** Push a notification toast */
+  notify(type: Notification['type'], message: string, timeout = 4000) {
+    const id = uid();
+    this.notifications.push({ id, type, message, timeout, timestamp: Date.now() });
+    if (timeout > 0) {
+      setTimeout(() => this.dismissNotification(id), timeout);
+    }
+  }
+
+  /** Remove a notification */
+  dismissNotification(id: string) {
+    this.notifications = this.notifications.filter(n => n.id !== id);
+  }
+
+  /** Push a tab onto the closed stack */
+  pushClosedTab(tab: OpenTab, index: number) {
+    this.closedTabs.push({ tab, index });
+    if (this.closedTabs.length > 20) {
+      this.closedTabs.shift();
+    }
+  }
+
+  /** Pop and reopen the most recently closed tab */
+  reopenClosedTab(): ClosedTab | null {
+    if (this.closedTabs.length === 0) return null;
+    return this.closedTabs.pop()!;
   }
 }
 
