@@ -1,5 +1,5 @@
 <!--
-  CommandPalette.svelte — VS Code-style Command Palette
+  CommandPalette.svelte - VS Code-style Command Palette
   Ctrl+Shift+P: command mode, Ctrl+P: file mode, Ctrl+G: goto line
 -->
 

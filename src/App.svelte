@@ -1,7 +1,7 @@
 <!--
   App.svelte -- Root Layout
   Handles both Tauri desktop and web PWA modes.
-  Web auth handled by Pangolin (Badger) -- if you can see this, you're in.
+  Web auth handled by reverse proxy -- if you can see this, you're in.
 -->
 
 <script lang="ts">
@@ -348,7 +348,7 @@
 <svelte:window onkeydown={handleKeydown} />
 
 {#if !webReady && api.isWeb}
-  <!-- Web mode: show project picker (Pangolin already authenticated) -->
+  <!-- Web mode: show project picker (already authenticated via proxy) -->
   <WebAuth onAuthenticated={onWebReady} />
 {:else}
   <TitleBar hasProject={showWorkspace} onOpenProject={openProject} />

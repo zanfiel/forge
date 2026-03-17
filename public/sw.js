@@ -1,4 +1,4 @@
-// Forge Service Worker — network-first for API, cache-first for assets
+// Forge Service Worker - network-first for API, cache-first for assets
 const CACHE_NAME = 'forge-v1';
 const PRECACHE = ['/', '/manifest.json'];
 

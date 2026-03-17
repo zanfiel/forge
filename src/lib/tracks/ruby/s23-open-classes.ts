@@ -5,7 +5,7 @@ export const section: LessonSection = {
   title: '23. Open Classes',
   explanation: `## Open Classes in Ruby
 
-Ruby classes are **open** — you can reopen and modify any class at any time, including core classes like String, Array, and Integer.
+Ruby classes are **open** - you can reopen and modify any class at any time, including core classes like String, Array, and Integer.
 
 \`\`\`ruby
 # Reopening a class

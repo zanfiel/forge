@@ -429,7 +429,7 @@ class EventController {
       type: 'fix-bug',
       difficulty: 'beginner',
       language: 'php',
-      goal: 'Fix the error — the class is not found because the use statement is missing.',
+      goal: 'Fix the error - the class is not found because the use statement is missing.',
       skeleton: `<?php
 namespace App\\Controllers;
 
@@ -497,7 +497,7 @@ function createException(string \$msg): \\Exception {
       type: 'fix-bug',
       difficulty: 'beginner',
       language: 'php',
-      goal: 'Fix the error — namespace must be the first statement.',
+      goal: 'Fix the error - namespace must be the first statement.',
       skeleton: `<?php
 use App\\Models\\User;
 

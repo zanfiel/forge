@@ -31,7 +31,7 @@ const p: [*]i32 = &arr[0];
 const third = (p + 2).*;
 \`\`\`
 
-Zig has no implicit pointer coercion and no pointer arithmetic on \`*T\` — use \`[*]T\` explicitly.`,
+Zig has no implicit pointer coercion and no pointer arithmetic on \`*T\` - use \`[*]T\` explicitly.`,
   exercises: [
     {
       id: 'zig-ptr-1',

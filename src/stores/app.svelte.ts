@@ -1,5 +1,5 @@
 /**
- * Stores — Shared state for the whole app.
+ * Stores - Shared state for the whole app.
  */
 
 // ─── Types ──────────────────────────────────
@@ -63,7 +63,7 @@ export interface Exercise {
   type: ExerciseType;
   difficulty: Difficulty;
   language: string;
-  /** What the student needs to do — plain English */
+  /** What the student needs to do - plain English */
   goal: string;
   /** Starter code loaded into editor. Blanks marked with __BLANK__ */
   skeleton: string;

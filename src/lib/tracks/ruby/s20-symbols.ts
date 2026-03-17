@@ -37,7 +37,7 @@ user = { :name => "Alice", :age => 30 }  # hashrocket syntax
 
 ### Key Concepts
 
-- Symbols are **immutable** and **unique** — only one copy exists in memory
+- Symbols are **immutable** and **unique** - only one copy exists in memory
 - Symbols are faster for comparison than strings
 - Modern Ruby hash syntax \`key: value\` uses symbols automatically
 - **\`Symbol#to_proc\`** converts a symbol to a block: \`&:method_name\`

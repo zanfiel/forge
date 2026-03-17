@@ -1,5 +1,5 @@
 <!--
-  InstructorPanel.svelte — Full Coding Instructor
+  InstructorPanel.svelte - Full Coding Instructor
   
   Teaching flow:
   1. Pick a language track
@@ -205,7 +205,7 @@ Be strict on correctness but kind in tone. The goal is learning, not gatekeeping
       exerciseTab.modified = true;
     }
     store.instructor.status = 'passed';
-    store.instructor.feedback = '📖 Solution revealed. Study it carefully — then try the next exercise without peeking!';
+    store.instructor.feedback = '📖 Solution revealed. Study it carefully - then try the next exercise without peeking!';
     // Don't mark as completed when solution is revealed
   }
 
@@ -233,7 +233,7 @@ Concepts: ${currentExercise.concepts.join(', ')}`
 
 The student asks: "${text}"
 
-Explain clearly using simple language. Use code examples. Don't give full solutions to exercises — guide them to figure it out. Keep responses concise (3-6 sentences). If they ask something unrelated, gently redirect to the current exercise.`;
+Explain clearly using simple language. Use code examples. Don't give full solutions to exercises - guide them to figure it out. Keep responses concise (3-6 sentences). If they ask something unrelated, gently redirect to the current exercise.`;
 
     try {
       const resp = await api.chat(prompt, `instructor-chat-${store.sessionId}`);

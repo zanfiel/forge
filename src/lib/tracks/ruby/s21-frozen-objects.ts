@@ -45,7 +45,7 @@ DEFAULTS = {
 - **\`frozen?\`** checks if an object is frozen
 - **\`dup\`** creates a shallow copy that is NOT frozen
 - **\`clone\`** creates a shallow copy that preserves frozen state
-- **Freezing is shallow** — nested objects are NOT frozen
+- **Freezing is shallow** - nested objects are NOT frozen
 - The \`# frozen_string_literal: true\` pragma freezes all string literals
 - Integers, symbols, \`true\`, \`false\`, and \`nil\` are always frozen`,
   exercises: [

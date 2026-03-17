@@ -47,7 +47,7 @@ function outer(): Generator {
 // Produces: 0, 1, 2, 3
 \`\`\`
 
-### send() — Sending Values In
+### send() - Sending Values In
 \`\`\`php
 function accumulator(): Generator {
     \$total = 0;
@@ -473,7 +473,7 @@ foreach (evens(1000000) as \$n) {
       type: 'fix-bug',
       difficulty: 'intermediate',
       language: 'php',
-      goal: 'Fix the send() usage — the generator must be initialized first.',
+      goal: 'Fix the send() usage - the generator must be initialized first.',
       skeleton: `<?php
 function doubler(): Generator {
     while (true) {

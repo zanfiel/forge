@@ -21,7 +21,7 @@ let poem = """
 \`\`\`
 
 ### String Indices
-Swift strings don't use integer indices — they use \`String.Index\`:
+Swift strings don't use integer indices - they use \`String.Index\`:
 \`\`\`swift
 let s = "Hello"
 let first = s[s.startIndex]           // "H"

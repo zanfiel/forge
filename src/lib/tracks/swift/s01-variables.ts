@@ -18,7 +18,7 @@ score += 50                // var allows mutation
 \`\`\`
 
 ### Type Inference
-Swift's type inference is powerful — it deduces the type from the assigned value. Use annotations when the inferred type isn't what you want (e.g., \`let pi: Float = 3.14\` instead of the default \`Double\`).
+Swift's type inference is powerful - it deduces the type from the assigned value. Use annotations when the inferred type isn't what you want (e.g., \`let pi: Float = 3.14\` instead of the default \`Double\`).
 
 ### Tuples
 Tuples group multiple values into a single compound value:

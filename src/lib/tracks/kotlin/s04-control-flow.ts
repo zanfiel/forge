@@ -3,7 +3,7 @@ import type { LessonSection } from '../../../stores/app.svelte.ts';
 export const section: LessonSection = {
   id: 'kt-flow',
   title: '04. Control Flow',
-  explanation: `## Control Flow in Kotlin\n\n**if expression** — Kotlin's if is an expression that returns a value:\n\n\`\`\`kotlin\nval max = if (a > b) a else b\n\`\`\`\n\n**when expression** — powerful replacement for switch:\n\n\`\`\`kotlin\nwhen (x) {\n    1 -> println("one")\n    2, 3 -> println("two or three")\n    in 4..10 -> println("between 4 and 10")\n    else -> println("other")\n}\n\`\`\`\n\n**for loop** — iterates over anything that provides an iterator:\n\n\`\`\`kotlin\nfor (i in 1..5) println(i)       // 1 2 3 4 5\nfor (i in 5 downTo 1) println(i) // 5 4 3 2 1\nfor (i in 0 until 5) println(i)  // 0 1 2 3 4\nfor (i in 0..10 step 2) println(i) // 0 2 4 6 8 10\n\`\`\`\n\n**while / do-while:**\n\n\`\`\`kotlin\nwhile (condition) { ... }\ndo { ... } while (condition)\n\`\`\`\n\n**Ranges:** \`1..5\` includes both endpoints, \`0 until 5\` excludes the end.`,
+  explanation: `## Control Flow in Kotlin\n\n**if expression** - Kotlin's if is an expression that returns a value:\n\n\`\`\`kotlin\nval max = if (a > b) a else b\n\`\`\`\n\n**when expression** - powerful replacement for switch:\n\n\`\`\`kotlin\nwhen (x) {\n    1 -> println("one")\n    2, 3 -> println("two or three")\n    in 4..10 -> println("between 4 and 10")\n    else -> println("other")\n}\n\`\`\`\n\n**for loop** - iterates over anything that provides an iterator:\n\n\`\`\`kotlin\nfor (i in 1..5) println(i)       // 1 2 3 4 5\nfor (i in 5 downTo 1) println(i) // 5 4 3 2 1\nfor (i in 0 until 5) println(i)  // 0 1 2 3 4\nfor (i in 0..10 step 2) println(i) // 0 2 4 6 8 10\n\`\`\`\n\n**while / do-while:**\n\n\`\`\`kotlin\nwhile (condition) { ... }\ndo { ... } while (condition)\n\`\`\`\n\n**Ranges:** \`1..5\` includes both endpoints, \`0 until 5\` excludes the end.`,
   exercises: [
     {
       id: 'kt-flow-1',
@@ -119,7 +119,7 @@ export const section: LessonSection = {
       type: 'fix-bug',
       difficulty: 'beginner',
       language: 'kotlin',
-      goal: 'Fix the when expression used as a value — it needs to be exhaustive.',
+      goal: 'Fix the when expression used as a value - it needs to be exhaustive.',
       skeleton: `fun describe(x: Int): String {\n    return when (x) {\n        1 -> "one"\n        2 -> "two"\n    }\n}`,
       solution: `fun describe(x: Int): String {\n    return when (x) {\n        1 -> "one"\n        2 -> "two"\n        else -> "other"\n    }\n}`,
       hints: ['when used as an expression must cover all cases.', 'Add an else branch.', 'else -> "other"'],

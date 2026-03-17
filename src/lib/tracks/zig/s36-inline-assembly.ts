@@ -707,7 +707,7 @@ pub fn enableInterrupts() void {
 }
 
 pub fn main() void {
-    // Not callable from user space — just verify compilation
+    // Not callable from user space - just verify compilation
     _ = disableInterrupts;
     _ = enableInterrupts;
 }`,

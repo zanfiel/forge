@@ -14,12 +14,12 @@ test "addition" {
 \`\`\`
 
 **Common testing functions:**
-- \`std.testing.expect(bool)\` — assert true
-- \`std.testing.expectEqual(expected, actual)\` — assert equality
-- \`std.testing.expectError(err, expr)\` — assert an error
-- \`std.testing.expectEqualStrings(a, b)\` — compare strings
-- \`std.testing.expectEqualSlices(T, a, b)\` — compare slices
-- \`std.testing.allocator\` — a leak-checking allocator for tests
+- \`std.testing.expect(bool)\` - assert true
+- \`std.testing.expectEqual(expected, actual)\` - assert equality
+- \`std.testing.expectError(err, expr)\` - assert an error
+- \`std.testing.expectEqualStrings(a, b)\` - compare strings
+- \`std.testing.expectEqualSlices(T, a, b)\` - compare slices
+- \`std.testing.allocator\` - a leak-checking allocator for tests
 
 **Test setup:** Initialize common state at the top of the test block.
 
@@ -661,7 +661,7 @@ test "abs table" {
       goal: 'Skip or document that certain code panics intentionally.',
       skeleton: `const std = @import("std");
 
-// This test documents a panic — run with --test-filter to skip
+// This test documents a panic - run with --test-filter to skip
 test "slice out of bounds" {
     const arr = [_]u8{ 1, 2, 3 };
     // Accessing arr[5] would panic

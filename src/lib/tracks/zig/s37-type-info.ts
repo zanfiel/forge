@@ -13,24 +13,24 @@ const info = @typeInfo([]u8); // info.Pointer
 \`\`\`
 
 **Common TypeInfo variants:**
-- \`.Int\` — integer types
-- \`.Float\` — float types
-- \`.Struct\` — structs with \`.fields\` array
-- \`.Enum\` — enums with \`.fields\` array
-- \`.Union\` — unions
-- \`.Pointer\` — pointer types
-- \`.Optional\` — optional types
-- \`.Array\` — fixed arrays
-- \`.Fn\` — function types
+- \`.Int\` - integer types
+- \`.Float\` - float types
+- \`.Struct\` - structs with \`.fields\` array
+- \`.Enum\` - enums with \`.fields\` array
+- \`.Union\` - unions
+- \`.Pointer\` - pointer types
+- \`.Optional\` - optional types
+- \`.Array\` - fixed arrays
+- \`.Fn\` - function types
 
 **Useful builtins:**
-- \`@typeName(T)\` — string name of type T
-- \`@sizeOf(T)\` — size in bytes
-- \`@bitSizeOf(T)\` — size in bits
-- \`@alignOf(T)\` — alignment
-- \`@TypeOf(expr)\` — type of an expression
-- \`@hasField(T, "name")\` — comptime field existence check
-- \`@hasDecl(T, "name")\` — comptime declaration check`,
+- \`@typeName(T)\` - string name of type T
+- \`@sizeOf(T)\` - size in bytes
+- \`@bitSizeOf(T)\` - size in bits
+- \`@alignOf(T)\` - alignment
+- \`@TypeOf(expr)\` - type of an expression
+- \`@hasField(T, "name")\` - comptime field existence check
+- \`@hasDecl(T, "name")\` - comptime declaration check`,
   exercises: [
     {
       id: 'zig-typeinfo-1',

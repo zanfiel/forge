@@ -85,7 +85,7 @@ interface Printable {
 }`,
       hints: [
         'Use the "interface" keyword to declare an interface.',
-        'Interface methods have no body — just the signature followed by a semicolon.',
+        'Interface methods have no body - just the signature followed by a semicolon.',
         'Name the method toString as it returns a string.',
       ],
       concepts: ['interface-declaration', 'method-signature'],
@@ -124,7 +124,7 @@ class Circle implements Shape {
       hints: [
         'Use the "implements" keyword to adopt an interface.',
         'The method name must match the interface declaration exactly.',
-        'The return type must also match — float in this case.',
+        'The return type must also match - float in this case.',
       ],
       concepts: ['implements', 'interface-contract'],
     },

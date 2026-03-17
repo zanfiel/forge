@@ -1,9 +1,9 @@
 /**
- * API Layer — Dual-mode: Tauri IPC (desktop) or HTTP (web PWA)
+ * API Layer - Dual-mode: Tauri IPC (desktop) or HTTP (web PWA)
  *
  * Auto-detects environment. Desktop app uses Tauri invoke().
  * Browser PWA uses HTTP to the Forge web server.
- * Auth in web mode is handled by Pangolin (Badger) before traffic reaches us.
+ * Auth in web mode is handled by the reverse proxy before traffic reaches us.
  */
 
 // ─── Environment Detection ──────────────────
@@ -76,7 +76,7 @@ export async function openFolder(): Promise<string | null> {
     return null;
   }
 
-  // Web mode — dispatch event for project picker UI
+  // Web mode - dispatch event for project picker UI
   const data = await apiFetch('/project/list');
   if (!data.dirs?.length) return null;
 
@@ -241,14 +241,14 @@ export async function openExternal(url: string) {
   window.open(url, '_blank');
 }
 
-// ─── Web Auth (Pangolin-backed — always authenticated if you can reach the page) ───
+// ─── Web Auth (proxy-backed - always authenticated if you can reach the page) ───
 
 export async function webCheckAuth(): Promise<boolean> {
-  return true; // Pangolin Badger handles auth before traffic reaches us
+  return true; // Reverse proxy handles auth before traffic reaches us
 }
 
 export async function webLogout(): Promise<void> {
-  // Redirect to Pangolin logout
+  // Redirect to proxy logout
   window.location.href = '/';
 }
 
@@ -259,11 +259,11 @@ export async function listProjects(): Promise<string[]> {
   return data.dirs || [];
 }
 
-// ─── Engram — Persistent Memory ─────────────
+// ─── Engram - Persistent Memory ─────────────
 //
 // Web mode uses Forge backend proxy with remote failover.
 // Desktop mode uses Tauri commands with local-first failover.
-// All calls are best-effort — failure never blocks the UI.
+// All calls are best-effort - failure never blocks the UI.
 
 export interface EngramMemory {
   id: number;
@@ -304,7 +304,7 @@ export async function getEngramContext(query: string, budget = 2000): Promise<st
     }
     return parts.join('\n\n');
   } catch {
-    return ''; // Engram offline — continue without memory
+    return ''; // Engram offline - continue without memory
   }
 }
 

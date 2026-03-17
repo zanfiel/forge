@@ -3,7 +3,7 @@ import type { LessonSection } from '../../../stores/app.svelte.ts';
 export const section: LessonSection = {
   id: 'kt-typesys',
   title: '25. Type System',
-  explanation: `## Kotlin Type System\n\n**Smart casts** — Kotlin automatically casts after a type check:\n\n\`\`\`kotlin\nfun describe(obj: Any): String = when (obj) {\n    is String -> "String of length \${obj.length}"\n    is Int -> "Int: \${obj + 1}"\n    else -> "Unknown"\n}\n\`\`\`\n\n**Type checks:**\n- \`is\` — checks if a value is a type\n- \`!is\` — checks if NOT a type\n\n**Casts:**\n- \`as\` — unsafe cast (throws ClassCastException)\n- \`as?\` — safe cast (returns null on failure)\n\n\`\`\`kotlin\nval x: Any = "hello"\nval s: String = x as String    // unsafe cast\nval n: Int? = x as? Int         // null (safe cast)\n\`\`\`\n\n**Type aliases:**\n\n\`\`\`kotlin\ntypealias StringMap = Map<String, String>\ntypealias Predicate<T> = (T) -> Boolean\n\`\`\`\n\n**Type hierarchy:** Any is the root, Nothing is the bottom (subtype of all types), Unit is the void equivalent.`,
+  explanation: `## Kotlin Type System\n\n**Smart casts** - Kotlin automatically casts after a type check:\n\n\`\`\`kotlin\nfun describe(obj: Any): String = when (obj) {\n    is String -> "String of length \${obj.length}"\n    is Int -> "Int: \${obj + 1}"\n    else -> "Unknown"\n}\n\`\`\`\n\n**Type checks:**\n- \`is\` - checks if a value is a type\n- \`!is\` - checks if NOT a type\n\n**Casts:**\n- \`as\` - unsafe cast (throws ClassCastException)\n- \`as?\` - safe cast (returns null on failure)\n\n\`\`\`kotlin\nval x: Any = "hello"\nval s: String = x as String    // unsafe cast\nval n: Int? = x as? Int         // null (safe cast)\n\`\`\`\n\n**Type aliases:**\n\n\`\`\`kotlin\ntypealias StringMap = Map<String, String>\ntypealias Predicate<T> = (T) -> Boolean\n\`\`\`\n\n**Type hierarchy:** Any is the root, Nothing is the bottom (subtype of all types), Unit is the void equivalent.`,
   exercises: [
     {
       id: 'kt-typesys-1',
@@ -180,7 +180,7 @@ export const section: LessonSection = {
       difficulty: 'intermediate',
       language: 'kotlin',
       goal: 'Fix the function that uses an unsafe cast on a generic type.',
-      skeleton: `fun <T> firstOrNull(list: List<Any>, type: Class<T>): T? {\n    for (item in list) {\n        return item as T  // Unsafe — unchecked cast\n    }\n    return null\n}`,
+      skeleton: `fun <T> firstOrNull(list: List<Any>, type: Class<T>): T? {\n    for (item in list) {\n        return item as T  // Unsafe - unchecked cast\n    }\n    return null\n}`,
       solution: `fun <T> firstOrNull(list: List<Any>, type: Class<T>): T? {\n    for (item in list) {\n        if (type.isInstance(item)) {\n            @Suppress("UNCHECKED_CAST")\n            return item as T\n        }\n    }\n    return null\n}`,
       hints: ['Check the type before casting.', 'type.isInstance(item) checks at runtime.', 'Only cast after confirming the type.'],
       concepts: ['unsafe-cast'],

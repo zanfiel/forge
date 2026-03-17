@@ -28,7 +28,7 @@ const x = maybe orelse 0;
 const x = maybe orelse unreachable;
 \`\`\`
 
-**.?** is shorthand for \`orelse unreachable\` — panics if null:
+**.?** is shorthand for \`orelse unreachable\` - panics if null:
 \`\`\`zig
 const x = maybe.?;
 \`\`\`
@@ -40,7 +40,7 @@ while (iterator.next()) |item| {
 }
 \`\`\`
 
-Optionals in Zig replace null pointer bugs — the compiler ensures you handle the null case.`,
+Optionals in Zig replace null pointer bugs - the compiler ensures you handle the null case.`,
   exercises: [
     {
       id: 'zig-opt-1',

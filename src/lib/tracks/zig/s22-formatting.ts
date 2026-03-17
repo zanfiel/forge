@@ -7,22 +7,22 @@ export const section: LessonSection = {
   explanation: `Zig's formatting is done with \`std.fmt\`. The format string is comptime-checked.
 
 **Common specifiers:**
-- \`{d}\` — decimal integer
-- \`{s}\` — string slice
-- \`{}\` — default formatting (booleans, structs)
-- \`{x}\` — lowercase hex, \`{X}\` — uppercase hex
-- \`{b}\` — binary
-- \`{o}\` — octal
-- \`{e}\` — scientific notation
-- \`{.2}\` — float with 2 decimal places
-- \`{?}\` — optional value
-- \`{any}\` — any type
+- \`{d}\` - decimal integer
+- \`{s}\` - string slice
+- \`{}\` - default formatting (booleans, structs)
+- \`{x}\` - lowercase hex, \`{X}\` - uppercase hex
+- \`{b}\` - binary
+- \`{o}\` - octal
+- \`{e}\` - scientific notation
+- \`{.2}\` - float with 2 decimal places
+- \`{?}\` - optional value
+- \`{any}\` - any type
 
 **Output targets:**
-- \`std.debug.print\` — stderr, no error
-- \`writer.print\` — any writer, returns error
-- \`std.fmt.bufPrint\` — into a fixed buffer
-- \`std.fmt.allocPrint\` — heap-allocated
+- \`std.debug.print\` - stderr, no error
+- \`writer.print\` - any writer, returns error
+- \`std.fmt.bufPrint\` - into a fixed buffer
+- \`std.fmt.allocPrint\` - heap-allocated
 
 \`\`\`zig
 var buf: [32]u8 = undefined;
@@ -30,10 +30,10 @@ const s = try std.fmt.bufPrint(&buf, "{x:0>8}", .{255}); // "000000ff"
 \`\`\`
 
 **Fill and alignment:** \`{[fill][align][width]}\`
-- \`{:<10}\` — left-align in 10 chars
-- \`{:>10}\` — right-align
-- \`{:^10}\` — center
-- \`{:0>5}\` — zero-pad to width 5`,
+- \`{:<10}\` - left-align in 10 chars
+- \`{:>10}\` - right-align
+- \`{:^10}\` - center
+- \`{:0>5}\` - zero-pad to width 5`,
   exercises: [
     {
       id: 'zig-fmt-1',

@@ -32,9 +32,9 @@ temps.sort  # Works because of Comparable mixin
 
 ### include vs extend vs prepend
 
-- **\`include\`** — adds methods as instance methods; inserted after the class in MRO
-- **\`extend\`** — adds methods as class methods (singleton methods)
-- **\`prepend\`** — adds methods as instance methods; inserted *before* the class in MRO (can override class methods)
+- **\`include\`** - adds methods as instance methods; inserted after the class in MRO
+- **\`extend\`** - adds methods as class methods (singleton methods)
+- **\`prepend\`** - adds methods as instance methods; inserted *before* the class in MRO (can override class methods)
 
 ### Hook Methods
 
@@ -53,9 +53,9 @@ module Trackable
 end
 \`\`\`
 
-- **\`self.included(base)\`** — called when the module is included
-- **\`self.extended(base)\`** — called when the module is extended
-- **\`self.prepended(base)\`** — called when the module is prepended`,
+- **\`self.included(base)\`** - called when the module is included
+- **\`self.extended(base)\`** - called when the module is extended
+- **\`self.prepended(base)\`** - called when the module is prepended`,
   exercises: [
     {
       id: 'rb-mixins-1',

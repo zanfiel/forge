@@ -206,7 +206,7 @@ export const section: LessonSection = {
       goal: 'Refactor duplicate code into a base class.',
       skeleton: `class Dog(val name: String) {\n    fun speak() = "\$name says Woof!"\n    fun describe() = "Animal: \$name"\n}\n\nclass Cat(val name: String) {\n    fun speak() = "\$name says Meow!"\n    fun describe() = "Animal: \$name"\n}`,
       solution: `open class Animal(val name: String) {\n    open fun speak() = "\$name says ..."\n    fun describe() = "Animal: \$name"\n}\n\nclass Dog(name: String) : Animal(name) {\n    override fun speak() = "\$name says Woof!"\n}\n\nclass Cat(name: String) : Animal(name) {\n    override fun speak() = "\$name says Meow!"\n}`,
-      hints: ['Extract common code into a base class.', 'describe() is the same — keep it in the base.', 'speak() differs — make it open and override.'],
+      hints: ['Extract common code into a base class.', 'describe() is the same - keep it in the base.', 'speak() differs - make it open and override.'],
       concepts: ['open', 'override', 'inheritance'],
     },
     {
@@ -229,7 +229,7 @@ export const section: LessonSection = {
       language: 'kotlin',
       goal: 'Write a class hierarchy where the middle class marks its override as final to prevent further overriding.',
       skeleton: `// A -> B (final override) -> C cannot override`,
-      solution: `open class A {\n    open fun action(): String = "A"\n}\n\nopen class B : A() {\n    final override fun action(): String = "B"\n}\n\nclass C : B() {\n    // Cannot override action() — it is final in B\n}`,
+      solution: `open class A {\n    open fun action(): String = "A"\n}\n\nopen class B : A() {\n    final override fun action(): String = "B"\n}\n\nclass C : B() {\n    // Cannot override action() - it is final in B\n}`,
       hints: ['Use final override to prevent further overriding.', 'final override fun action()', 'C cannot override action.'],
       concepts: ['final', 'override'],
     },

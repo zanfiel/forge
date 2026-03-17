@@ -1,5 +1,5 @@
 <!--
-  StatusBar.svelte — Bottom status bar like VS Code
+  StatusBar.svelte - Bottom status bar like VS Code
   Shows cursor position, language, encoding, line endings, indentation, etc.
 -->
 

@@ -42,7 +42,7 @@ const Flags = packed struct {
 };
 \`\`\`
 
-Structs are value types — assignment copies the struct.`,
+Structs are value types - assignment copies the struct.`,
   exercises: [
     {
       id: 'zig-struct-1',

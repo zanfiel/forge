@@ -3,7 +3,7 @@ import type { LessonSection } from '../../../stores/app.svelte.ts';
 export const section: LessonSection = {
   id: 'kt-data',
   title: '08. Data Classes',
-  explanation: `## Data Classes in Kotlin\n\nData classes automatically generate useful methods from primary constructor properties:\n\n\`\`\`kotlin\ndata class User(val name: String, val age: Int)\n\`\`\`\n\nThis generates:\n- **equals()** / **hashCode()** — based on all properties\n- **toString()** — e.g. \`User(name=Alice, age=30)\`\n- **copy()** — creates a copy with optional modifications\n- **componentN()** — for destructuring\n\n\`\`\`kotlin\nval user = User("Alice", 30)\nval copy = user.copy(age = 31)\nval (name, age) = user  // destructuring\nprintln(user)           // User(name=Alice, age=30)\n\`\`\`\n\nRules for data classes:\n- Must have at least one val/var in the primary constructor\n- Cannot be abstract, open, sealed, or inner\n- Properties in the body are NOT included in generated methods`,
+  explanation: `## Data Classes in Kotlin\n\nData classes automatically generate useful methods from primary constructor properties:\n\n\`\`\`kotlin\ndata class User(val name: String, val age: Int)\n\`\`\`\n\nThis generates:\n- **equals()** / **hashCode()** - based on all properties\n- **toString()** - e.g. \`User(name=Alice, age=30)\`\n- **copy()** - creates a copy with optional modifications\n- **componentN()** - for destructuring\n\n\`\`\`kotlin\nval user = User("Alice", 30)\nval copy = user.copy(age = 31)\nval (name, age) = user  // destructuring\nprintln(user)           // User(name=Alice, age=30)\n\`\`\`\n\nRules for data classes:\n- Must have at least one val/var in the primary constructor\n- Cannot be abstract, open, sealed, or inner\n- Properties in the body are NOT included in generated methods`,
   exercises: [
     {
       id: 'kt-data-1',
@@ -107,8 +107,8 @@ export const section: LessonSection = {
       type: 'fix-bug',
       difficulty: 'intermediate',
       language: 'kotlin',
-      goal: 'Understand why two instances are considered equal despite different timestamps — move timestamp to constructor.',
-      skeleton: `data class Event(val name: String) {\n    var timestamp: Long = System.currentTimeMillis()\n}\n\nfun main() {\n    val a = Event("click")\n    val b = Event("click")\n    b.timestamp = 999\n    println(a == b)  // prints true — but they have different timestamps!\n}`,
+      goal: 'Understand why two instances are considered equal despite different timestamps - move timestamp to constructor.',
+      skeleton: `data class Event(val name: String) {\n    var timestamp: Long = System.currentTimeMillis()\n}\n\nfun main() {\n    val a = Event("click")\n    val b = Event("click")\n    b.timestamp = 999\n    println(a == b)  // prints true - but they have different timestamps!\n}`,
       solution: `data class Event(val name: String, var timestamp: Long = System.currentTimeMillis())\n\nfun main() {\n    val a = Event("click")\n    val b = Event("click")\n    b.timestamp = 999\n    println(a == b)  // now prints false\n}`,
       hints: ['Properties in the class body are NOT part of equals/hashCode.', 'Move timestamp to the primary constructor.', 'Only constructor properties are used in generated methods.'],
       concepts: ['data-class', 'equals'],

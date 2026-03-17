@@ -5,7 +5,7 @@ export const section: LessonSection = {
   title: '16. Iterators',
   explanation: `## Iterators in Ruby
 
-Ruby's iterator methods are the primary way to traverse collections. They use blocks — closures passed to methods.
+Ruby's iterator methods are the primary way to traverse collections. They use blocks - closures passed to methods.
 
 \`\`\`ruby
 # each - the fundamental iterator

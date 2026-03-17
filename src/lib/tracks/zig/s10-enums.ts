@@ -16,7 +16,7 @@ const d = Direction.north;
 const Status = enum(u8) { ok = 200, not_found = 404 };
 \`\`\`
 
-**Switch on enums** is exhaustive — Zig enforces all cases:
+**Switch on enums** is exhaustive - Zig enforces all cases:
 \`\`\`zig
 switch (d) {
     .north => std.debug.print("N\\n", .{}),

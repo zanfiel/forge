@@ -39,7 +39,7 @@ puts dh.name          # calls method_missing(:name)
 - **\`public_send\`** calls only public methods by name
 - **Ghost methods** are methods that exist only through method_missing
 - **\`BasicObject\`** has almost no methods, making it ideal for proxy objects
-- Be careful with performance — method_missing is slower than defined methods`,
+- Be careful with performance - method_missing is slower than defined methods`,
   exercises: [
     {
       id: 'rb-method-missing-1',

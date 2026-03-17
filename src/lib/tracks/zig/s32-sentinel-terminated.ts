@@ -477,7 +477,7 @@ pub fn main() void {
     }
 }`,
       hints: [
-        'std.os.argv is [][*:0]u8 — a slice of null-terminated strings.',
+        'std.os.argv is [][*:0]u8 - a slice of null-terminated strings.',
         'Each arg is converted to a slice with std.mem.span.',
         'Prints the program name and any arguments.',
       ],

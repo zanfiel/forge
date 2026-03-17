@@ -40,7 +40,7 @@ User.new("Alice").greet  # => "Hello, I'm Alice"
 
 ### Key Concepts
 
-- **\`module\`** defines a module — a collection of methods and constants
+- **\`module\`** defines a module - a collection of methods and constants
 - **\`include\`** adds module methods as instance methods
 - **\`extend\`** adds module methods as class methods
 - **\`module_function\`** makes methods callable on the module directly

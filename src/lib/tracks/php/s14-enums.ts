@@ -455,7 +455,7 @@ enum Color {
       type: 'fix-bug',
       difficulty: 'beginner',
       language: 'php',
-      goal: 'Fix the backed enum — all cases must have values of the declared type.',
+      goal: 'Fix the backed enum - all cases must have values of the declared type.',
       skeleton: `<?php
 enum Level: int {
     case Low = 1;
@@ -481,7 +481,7 @@ enum Level: int {
       type: 'fix-bug',
       difficulty: 'intermediate',
       language: 'php',
-      goal: 'Fix the type error — the enum uses from() with the wrong type.',
+      goal: 'Fix the type error - the enum uses from() with the wrong type.',
       skeleton: `<?php
 enum Grade: string {
     case A = 'A';
@@ -511,7 +511,7 @@ enum Grade: string {
       type: 'fix-bug',
       difficulty: 'intermediate',
       language: 'php',
-      goal: 'Fix the error — enums cannot have mutable properties.',
+      goal: 'Fix the error - enums cannot have mutable properties.',
       skeleton: `<?php
 enum Theme: string {
     case Light = 'light';
@@ -564,7 +564,7 @@ echo ' ';
 echo (\$a === \$c) ? 'same' : 'diff';`,
       solution: `same diff`,
       hints: [
-        'Enum cases are singletons — same case === same case.',
+        'Enum cases are singletons - same case === same case.',
         'Heads === Heads is true, Heads === Tails is false.',
         'Output is "same diff".',
       ],

@@ -1,5 +1,5 @@
 /**
- * TypeScript Track — 1000 exercises across 50 sections
+ * TypeScript Track - 1000 exercises across 50 sections
  *
  * Comprehensive TypeScript curriculum from absolute beginner to advanced.
  * Each section contains 20 exercises with progressive difficulty.

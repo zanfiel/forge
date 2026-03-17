@@ -43,10 +43,10 @@ function find(int \$id): ?User {
 \`\`\`
 
 ### Special Types
-- **void** — function returns nothing
-- **never** — function never returns (throws or exits)
-- **mixed** — any type (explicit opt-out of type safety)
-- **self** / **static** / **parent** — class reference types
+- **void** - function returns nothing
+- **never** - function never returns (throws or exits)
+- **mixed** - any type (explicit opt-out of type safety)
+- **self** / **static** / **parent** - class reference types
 
 ### Type Coercion vs Strict
 Without strict_types, PHP coerces values:
@@ -59,7 +59,7 @@ echo double('abc'); // TypeError (cannot coerce)
 ### DNF Types (PHP 8.2)
 \`\`\`php
 function process((Countable&Traversable)|null \$input): void {
-    // Disjunctive Normal Form — union of intersections
+    // Disjunctive Normal Form - union of intersections
 }
 \`\`\``,
   exercises: [
@@ -393,7 +393,7 @@ echo greet('World');`,
       type: 'fix-bug',
       difficulty: 'intermediate',
       language: 'php',
-      goal: 'Fix the type error — the function can return null but the type does not allow it.',
+      goal: 'Fix the type error - the function can return null but the type does not allow it.',
       skeleton: `<?php
 declare(strict_types=1);
 
@@ -518,7 +518,7 @@ echo maybe(0);`,
       hints: [
         'maybe(42) returns "got 42".',
         'maybe(null) returns "none" since $val is null.',
-        'maybe(0) returns "got 0" — 0 is not null.',
+        'maybe(0) returns "got 0" - 0 is not null.',
       ],
       concepts: ['nullable-parameter', 'null-check', 'zero-vs-null'],
     },

@@ -39,7 +39,7 @@ A powerful pattern where the abstract class defines the algorithm skeleton:
 
 \`\`\`php
 abstract class DataProcessor {
-    // Template method — defines the algorithm
+    // Template method - defines the algorithm
     public function process(): string {
         \$data = \$this->fetch();
         \$transformed = \$this->transform(\$data);
@@ -85,7 +85,7 @@ abstract class Animal {
       hints: [
         'Use the "abstract" keyword before "class".',
         'Abstract methods also need the "abstract" keyword.',
-        'Abstract methods have no body — just a semicolon.',
+        'Abstract methods have no body - just a semicolon.',
       ],
       concepts: ['abstract-class', 'abstract-method'],
     },
@@ -222,8 +222,8 @@ abstract class Collection {
 }`,
       hints: [
         'count() returns an integer.',
-        'add() does not return anything — use void.',
-        'first() could return any type — use mixed.',
+        'add() does not return anything - use void.',
+        'first() could return any type - use mixed.',
       ],
       concepts: ['return-types', 'void', 'mixed'],
     },
@@ -309,7 +309,7 @@ abstract class Cache {
     }
 }`,
       hints: [
-        'get() is nullable — returns ?string.',
+        'get() is nullable - returns ?string.',
         'set() returns void.',
         'has() uses get() and checks for null.',
       ],
@@ -441,7 +441,7 @@ abstract class Validator {
       type: 'fix-bug',
       difficulty: 'beginner',
       language: 'php',
-      goal: 'Fix the error — abstract classes cannot be instantiated directly.',
+      goal: 'Fix the error - abstract classes cannot be instantiated directly.',
       skeleton: `<?php
 abstract class Logger {
     abstract public function log(string \$msg): void;

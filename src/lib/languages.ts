@@ -1,5 +1,5 @@
 /**
- * languages.ts — Language metadata map
+ * languages.ts - Language metadata map
  *
  * Single source of truth for language extensions, Monaco IDs, and display info.
  * Replaces all hardcoded extension/language ternaries throughout the codebase.

@@ -3,7 +3,7 @@ import type { LessonSection } from '../../../stores/app.svelte.ts';
 export const section: LessonSection = {
   id: 'kt-sealed',
   title: '13. Sealed Classes',
-  explanation: `## Sealed Classes in Kotlin\n\nSealed classes restrict class hierarchies — all subclasses must be defined in the same package:\n\n\`\`\`kotlin\nsealed class Result {\n    data class Success(val data: String) : Result()\n    data class Error(val message: String) : Result()\n    data object Loading : Result()\n}\n\`\`\`\n\n**Key benefits:**\n- **Exhaustive when** — the compiler knows all subclasses, so no \`else\` needed\n- Type-safe state modeling\n- Better than enums when subclasses need different data\n\n\`\`\`kotlin\nfun handle(result: Result): String = when (result) {\n    is Result.Success -> "Got: \${result.data}"\n    is Result.Error -> "Error: \${result.message}"\n    Result.Loading -> "Loading..."\n}\n\`\`\`\n\n**Sealed interfaces** work similarly:\n\n\`\`\`kotlin\nsealed interface Shape\ndata class Circle(val r: Double) : Shape\ndata class Rect(val w: Double, val h: Double) : Shape\n\`\`\``,
+  explanation: `## Sealed Classes in Kotlin\n\nSealed classes restrict class hierarchies - all subclasses must be defined in the same package:\n\n\`\`\`kotlin\nsealed class Result {\n    data class Success(val data: String) : Result()\n    data class Error(val message: String) : Result()\n    data object Loading : Result()\n}\n\`\`\`\n\n**Key benefits:**\n- **Exhaustive when** - the compiler knows all subclasses, so no \`else\` needed\n- Type-safe state modeling\n- Better than enums when subclasses need different data\n\n\`\`\`kotlin\nfun handle(result: Result): String = when (result) {\n    is Result.Success -> "Got: \${result.data}"\n    is Result.Error -> "Error: \${result.message}"\n    Result.Loading -> "Loading..."\n}\n\`\`\`\n\n**Sealed interfaces** work similarly:\n\n\`\`\`kotlin\nsealed interface Shape\ndata class Circle(val r: Double) : Shape\ndata class Rect(val w: Double, val h: Double) : Shape\n\`\`\``,
   exercises: [
     {
       id: 'kt-sealed-1',
@@ -107,7 +107,7 @@ export const section: LessonSection = {
       type: 'fix-bug',
       difficulty: 'intermediate',
       language: 'kotlin',
-      goal: 'Understand why adding a subclass in another file breaks things — fix by using the sealed class properly.',
+      goal: 'Understand why adding a subclass in another file breaks things - fix by using the sealed class properly.',
       skeleton: `// File: Result.kt\nsealed class Result\ndata class Success(val v: Int) : Result()\ndata class Failure(val e: String) : Result()\n\n// This function must handle all cases\nfun handle(r: Result): String = when (r) {\n    is Success -> "OK"\n    is Failure -> "Fail"\n    else -> "Unknown" // This else should not be needed\n}`,
       solution: `// File: Result.kt\nsealed class Result\ndata class Success(val v: Int) : Result()\ndata class Failure(val e: String) : Result()\n\n// This function handles all cases exhaustively\nfun handle(r: Result): String = when (r) {\n    is Success -> "OK"\n    is Failure -> "Fail"\n}`,
       hints: ['With all subclasses in the same file, when is exhaustive.', 'Remove the else branch.', 'Sealed classes guarantee exhaustiveness.'],

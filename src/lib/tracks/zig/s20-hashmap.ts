@@ -6,8 +6,8 @@ export const section: LessonSection = {
   language: 'zig',
   explanation: `Zig provides hash maps in \`std.hash_map\`. The common choices are:
 
-- \`std.AutoHashMap(K, V)\` — for integer/pointer keys with auto-hashing
-- \`std.StringHashMap(V)\` — for \`[]const u8\` string keys
+- \`std.AutoHashMap(K, V)\` - for integer/pointer keys with auto-hashing
+- \`std.StringHashMap(V)\` - for \`[]const u8\` string keys
 
 \`\`\`zig
 var map = std.AutoHashMap(i32, []const u8).init(allocator);
@@ -110,7 +110,7 @@ pub fn main() !void {
     std.debug.print("{?}\\n", .{val});
 }`,
       hints: [
-        'map.get(key) returns ?V — null if not found.',
+        'map.get(key) returns ?V - null if not found.',
         'Pass key 5 to retrieve the value 25.',
         '{?} prints optionals; output is 25.',
       ],

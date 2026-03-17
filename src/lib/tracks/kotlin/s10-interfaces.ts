@@ -3,7 +3,7 @@ import type { LessonSection } from '../../../stores/app.svelte.ts';
 export const section: LessonSection = {
   id: 'kt-iface',
   title: '10. Interfaces',
-  explanation: `## Interfaces in Kotlin\n\nInterfaces define a contract that classes can implement:\n\n\`\`\`kotlin\ninterface Clickable {\n    fun click()              // abstract — must be implemented\n    fun description() = "Clickable element"  // default implementation\n}\n\nclass Button : Clickable {\n    override fun click() = println("Button clicked")\n}\n\`\`\`\n\n**Key features:**\n- Can have abstract and default method implementations\n- Can declare properties (but no backing fields)\n- A class can implement multiple interfaces\n- No constructor — interfaces cannot hold state\n\n\`\`\`kotlin\ninterface Named {\n    val name: String  // abstract property\n}\n\ninterface Greeter {\n    fun greet(): String\n}\n\nclass Person(override val name: String) : Named, Greeter {\n    override fun greet() = "Hello, I'm \$name"\n}\n\`\`\`\n\nWhen multiple interfaces have the same method, use \`super<Interface>.method()\` to disambiguate.`,
+  explanation: `## Interfaces in Kotlin\n\nInterfaces define a contract that classes can implement:\n\n\`\`\`kotlin\ninterface Clickable {\n    fun click()              // abstract - must be implemented\n    fun description() = "Clickable element"  // default implementation\n}\n\nclass Button : Clickable {\n    override fun click() = println("Button clicked")\n}\n\`\`\`\n\n**Key features:**\n- Can have abstract and default method implementations\n- Can declare properties (but no backing fields)\n- A class can implement multiple interfaces\n- No constructor - interfaces cannot hold state\n\n\`\`\`kotlin\ninterface Named {\n    val name: String  // abstract property\n}\n\ninterface Greeter {\n    fun greet(): String\n}\n\nclass Person(override val name: String) : Named, Greeter {\n    override fun greet() = "Hello, I'm \$name"\n}\n\`\`\`\n\nWhen multiple interfaces have the same method, use \`super<Interface>.method()\` to disambiguate.`,
   exercises: [
     {
       id: 'kt-iface-1',
@@ -216,7 +216,7 @@ export const section: LessonSection = {
       difficulty: 'intermediate',
       language: 'kotlin',
       goal: 'Refactor: Kotlin does not support multiple class inheritance. Use interfaces.',
-      skeleton: `// This won't compile — can't extend two classes\n// open class Swimmer { open fun swim() = "swimming" }\n// open class Flyer { open fun fly() = "flying" }\n// class Duck : Swimmer(), Flyer()\n\n// Refactor to compile`,
+      skeleton: `// This won't compile - can't extend two classes\n// open class Swimmer { open fun swim() = "swimming" }\n// open class Flyer { open fun fly() = "flying" }\n// class Duck : Swimmer(), Flyer()\n\n// Refactor to compile`,
       solution: `interface Swimmer {\n    fun swim() = "swimming"\n}\n\ninterface Flyer {\n    fun fly() = "flying"\n}\n\nclass Duck : Swimmer, Flyer`,
       hints: ['Convert classes to interfaces.', 'Interfaces support multiple inheritance.', 'class Duck : Swimmer, Flyer'],
       concepts: ['interface'],

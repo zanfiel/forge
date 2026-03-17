@@ -3,7 +3,7 @@ import type { LessonSection } from '../../../stores/app.svelte.ts';
 export const section: LessonSection = {
   id: 'kt-null',
   title: '06. Null Safety',
-  explanation: `## Null Safety in Kotlin\n\nKotlin's type system distinguishes nullable and non-nullable types to eliminate NullPointerExceptions:\n\n\`\`\`kotlin\nvar name: String = "Kotlin"  // Cannot be null\nvar nick: String? = null      // Nullable — can be null\n\`\`\`\n\n**Safe call operator ?.** — returns null if the receiver is null:\n\n\`\`\`kotlin\nval len: Int? = nick?.length  // null if nick is null\n\`\`\`\n\n**Elvis operator ?:** — provides a default when null:\n\n\`\`\`kotlin\nval len: Int = nick?.length ?: 0\n\`\`\`\n\n**Non-null assertion !!** — throws NPE if null (use sparingly):\n\n\`\`\`kotlin\nval len: Int = nick!!.length  // throws if nick is null\n\`\`\`\n\n**Safe let** — execute block only if non-null:\n\n\`\`\`kotlin\nnick?.let { println("Nickname: \$it") }\n\`\`\``,
+  explanation: `## Null Safety in Kotlin\n\nKotlin's type system distinguishes nullable and non-nullable types to eliminate NullPointerExceptions:\n\n\`\`\`kotlin\nvar name: String = "Kotlin"  // Cannot be null\nvar nick: String? = null      // Nullable - can be null\n\`\`\`\n\n**Safe call operator ?.** - returns null if the receiver is null:\n\n\`\`\`kotlin\nval len: Int? = nick?.length  // null if nick is null\n\`\`\`\n\n**Elvis operator ?:** - provides a default when null:\n\n\`\`\`kotlin\nval len: Int = nick?.length ?: 0\n\`\`\`\n\n**Non-null assertion !!** - throws NPE if null (use sparingly):\n\n\`\`\`kotlin\nval len: Int = nick!!.length  // throws if nick is null\n\`\`\`\n\n**Safe let** - execute block only if non-null:\n\n\`\`\`kotlin\nnick?.let { println("Nickname: \$it") }\n\`\`\``,
   exercises: [
     {
       id: 'kt-null-1',
@@ -119,7 +119,7 @@ export const section: LessonSection = {
       type: 'fix-bug',
       difficulty: 'intermediate',
       language: 'kotlin',
-      goal: 'Fix the code to avoid a NullPointerException — use safe call and Elvis instead.',
+      goal: 'Fix the code to avoid a NullPointerException - use safe call and Elvis instead.',
       skeleton: `fun getLength(s: String?): Int {\n    return s!!.length\n}`,
       solution: `fun getLength(s: String?): Int {\n    return s?.length ?: 0\n}`,
       hints: ['!! will crash if s is null.', 'Replace !! with ?. and ?:.', 's?.length ?: 0 is safe.'],

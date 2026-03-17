@@ -119,7 +119,7 @@ export const section: LessonSection = {
       type: 'fix-bug',
       difficulty: 'beginner',
       language: 'kotlin',
-      goal: 'Understand that set equality ignores order — fix the test.',
+      goal: 'Understand that set equality ignores order - fix the test.',
       skeleton: `fun main() {\n    val a = setOf(1, 2, 3)\n    val b = setOf(3, 2, 1)\n    // Developer expects false because order differs\n    if (a != b) println("Different!") else println("Same!")\n}`,
       solution: `fun main() {\n    val a = setOf(1, 2, 3)\n    val b = setOf(3, 2, 1)\n    // Sets are equal if they contain the same elements regardless of order\n    if (a == b) println("Same!") else println("Different!")\n}`,
       hints: ['Sets compare by content, not order.', '{1,2,3} == {3,2,1} is true.', 'Fix the expected behavior.'],

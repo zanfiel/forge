@@ -1,9 +1,9 @@
 /**
- * Forge Web Server — Bun + Hono backend for the browser PWA
+ * Forge Web Server - Bun + Hono backend for the browser PWA
  * 
  * Mirrors every Tauri command as an HTTP endpoint.
  * Serves the built Svelte frontend as static files.
- * Auth handled by Pangolin (Badger middleware) — no app-level auth needed.
+ * Auth handled by reverse proxy middleware - no app-level auth needed.
  */
 
 import { Hono } from 'hono';
@@ -16,7 +16,7 @@ import { existsSync } from 'fs';
 // ─── Config ─────────────────────────────────
 
 const PORT = parseInt(process.env.FORGE_PORT || '4400');
-const PROJECT_ROOT = process.env.FORGE_PROJECT_ROOT || process.env.HOME || '/home/zanfiel';
+const PROJECT_ROOT = process.env.FORGE_PROJECT_ROOT || process.env.HOME || '/home/user';
 const ALLOWED_ROOTS = (process.env.FORGE_ALLOWED_ROOTS || PROJECT_ROOT).split(',').map(s => s.trim());
 const SYNAPSE_URL = process.env.FORGE_SYNAPSE_URL || 'http://127.0.0.1:4300';
 
@@ -27,12 +27,12 @@ const IGNORE_DIRS = new Set([
   '.cargo', '.cache', 'coverage', '.turbo', '.wine',
 ]);
 
-// ─── In-memory project dir per client (keyed by Pangolin session) ───
+// ─── In-memory project dir per client (keyed by auth session) ───
 
 const projectDirs = new Map<string, string>();
 
 function getClientKey(c: any): string {
-  // Use Pangolin's session cookie or remote IP as client key
+  // Use auth session cookie or remote IP as client key
   const cookie = c.req.header('cookie') || '';
   const ip = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'anon';
   // Hash the session cookie to get a stable key
@@ -111,7 +111,7 @@ const app = new Hono();
 
 app.use('*', cors({ origin: '*', credentials: true }));
 
-// ─── Auth (Pangolin handles it — these are just stubs for the frontend) ───
+// ─── Auth (reverse proxy handles it - these are just stubs for the frontend) ───
 
 app.post('/api/auth/login', (c) => c.json({ ok: true }));
 app.get('/api/auth/check', (c) => c.json({ authenticated: true }));
@@ -272,8 +272,8 @@ app.post('/api/ai/confirm', async (c) => {
 
 // ─── Engram proxy (for web/PWA mode) ─────────
 
-const ENGRAM_PRIMARY = process.env.FORGE_ENGRAM_URL || 'http://100.64.0.3:4200';
-const ENGRAM_FALLBACK = process.env.FORGE_ENGRAM_FALLBACK_URL || 'http://100.64.0.2:4200';
+const ENGRAM_PRIMARY = process.env.FORGE_ENGRAM_URL || 'http://127.0.0.1:4200';
+const ENGRAM_FALLBACK = process.env.FORGE_ENGRAM_FALLBACK_URL || '';
 const ENGRAM_API_KEY = process.env.ENGRAM_API_KEY || process.env.FORGE_ENGRAM_API_KEY || '';
 let activeEngramUrl = ENGRAM_PRIMARY;
 let lastPrimaryCheck = 0;
@@ -396,7 +396,7 @@ console.log(`⚒️  Forge Web Server`);
 console.log(`   Port: ${PORT}`);
 console.log(`   Roots: ${ALLOWED_ROOTS.join(', ')}`);
 console.log(`   Synapse: ${SYNAPSE_URL}`);
-console.log(`   Auth: Pangolin (Badger middleware)`);
+console.log(`   Auth: reverse proxy`);
 
 export default {
   port: PORT,

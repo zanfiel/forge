@@ -54,8 +54,8 @@ const IGNORE_DIRS: &[&str] = &[
 
 const SYNAPSE_URL: &str = "http://127.0.0.1:4300";
 const ENGRAM_LOCAL: &str = "http://127.0.0.1:4200";
-const ENGRAM_BAV: &str = "http://100.64.0.3:4200";
-const ENGRAM_ROCKY: &str = "http://100.64.0.2:4200";
+const ENGRAM_BAV: &str = ""; // Set FORGE_ENGRAM_URL env var
+const ENGRAM_ROCKY: &str = ""; // Set FORGE_ENGRAM_FALLBACK_URL env var
 
 static LAST_PRIMARY_RECHECK: std::sync::OnceLock<Mutex<Option<Instant>>> = std::sync::OnceLock::new();
 
@@ -278,7 +278,7 @@ async fn ai_chat(message: String, session_id: String) -> ChatResponse {
     }
 }
 
-/// Chat with Synapse (streaming) — emits events to frontend
+/// Chat with Synapse (streaming) - emits events to frontend
 #[tauri::command]
 async fn ai_chat_stream(
     app: tauri::AppHandle,

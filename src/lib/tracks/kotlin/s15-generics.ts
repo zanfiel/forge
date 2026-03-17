@@ -3,7 +3,7 @@ import type { LessonSection } from '../../../stores/app.svelte.ts';
 export const section: LessonSection = {
   id: 'kt-generics',
   title: '15. Generics',
-  explanation: `## Generics in Kotlin\n\nGenerics allow writing type-safe code that works with different types:\n\n\`\`\`kotlin\nclass Box<T>(val value: T)\nval intBox = Box(42)        // Box<Int>\nval strBox = Box("Hello")   // Box<String>\n\`\`\`\n\n**Generic functions:**\n\n\`\`\`kotlin\nfun <T> singletonList(item: T): List<T> = listOf(item)\n\`\`\`\n\n**Type constraints:**\n\n\`\`\`kotlin\nfun <T : Comparable<T>> max(a: T, b: T): T = if (a > b) a else b\n\`\`\`\n\n**Variance:**\n- \`out T\` — covariant (producer, like ? extends T in Java)\n- \`in T\` — contravariant (consumer, like ? super T in Java)\n\n\`\`\`kotlin\ninterface Producer<out T> { fun produce(): T }\ninterface Consumer<in T> { fun consume(item: T) }\n\`\`\`\n\n**Reified type parameters** — access type info at runtime (inline functions only):\n\n\`\`\`kotlin\ninline fun <reified T> isType(value: Any): Boolean = value is T\n\`\`\``,
+  explanation: `## Generics in Kotlin\n\nGenerics allow writing type-safe code that works with different types:\n\n\`\`\`kotlin\nclass Box<T>(val value: T)\nval intBox = Box(42)        // Box<Int>\nval strBox = Box("Hello")   // Box<String>\n\`\`\`\n\n**Generic functions:**\n\n\`\`\`kotlin\nfun <T> singletonList(item: T): List<T> = listOf(item)\n\`\`\`\n\n**Type constraints:**\n\n\`\`\`kotlin\nfun <T : Comparable<T>> max(a: T, b: T): T = if (a > b) a else b\n\`\`\`\n\n**Variance:**\n- \`out T\` - covariant (producer, like ? extends T in Java)\n- \`in T\` - contravariant (consumer, like ? super T in Java)\n\n\`\`\`kotlin\ninterface Producer<out T> { fun produce(): T }\ninterface Consumer<in T> { fun consume(item: T) }\n\`\`\`\n\n**Reified type parameters** - access type info at runtime (inline functions only):\n\n\`\`\`kotlin\ninline fun <reified T> isType(value: Any): Boolean = value is T\n\`\`\``,
   exercises: [
     {
       id: 'kt-generics-1',
@@ -194,7 +194,7 @@ export const section: LessonSection = {
       goal: 'Write a fun interface Processor<in T> with fun process(item: T), and demonstrate contravariance.',
       skeleton: `// Define contravariant Processor interface`,
       solution: `fun interface Processor<in T> {\n    fun process(item: T)\n}\n\nfun main() {\n    val anyProcessor = Processor<Any> { println(it) }\n    val stringProcessor: Processor<String> = anyProcessor  // OK: in variance\n    stringProcessor.process("Hello")\n}`,
-      hints: ['in T means contravariant — consumes T.', 'Processor<Any> can be used as Processor<String>.', 'fun interface Processor<in T>'],
+      hints: ['in T means contravariant - consumes T.', 'Processor<Any> can be used as Processor<String>.', 'fun interface Processor<in T>'],
       concepts: ['variance'],
     },
     {

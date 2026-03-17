@@ -3,7 +3,7 @@ import type { LessonSection } from '../../../stores/app.svelte.ts';
 export const section: LessonSection = {
   id: 'kt-enum',
   title: '12. Enums',
-  explanation: `## Enum Classes in Kotlin\n\nEnum classes define a fixed set of constants:\n\n\`\`\`kotlin\nenum class Direction {\n    NORTH, SOUTH, EAST, WEST\n}\n\`\`\`\n\n**Enums with properties:**\n\n\`\`\`kotlin\nenum class Color(val hex: String) {\n    RED("#FF0000"),\n    GREEN("#00FF00"),\n    BLUE("#0000FF")\n}\n\`\`\`\n\n**Enums with abstract methods:**\n\n\`\`\`kotlin\nenum class Operation {\n    ADD {\n        override fun apply(a: Int, b: Int) = a + b\n    },\n    SUB {\n        override fun apply(a: Int, b: Int) = a - b\n    };\n    abstract fun apply(a: Int, b: Int): Int\n}\n\`\`\`\n\n**Useful methods:**\n- \`valueOf("NORTH")\` — get enum by name\n- \`entries\` — list of all enum values\n- \`.name\` / \`.ordinal\` — name string and index`,
+  explanation: `## Enum Classes in Kotlin\n\nEnum classes define a fixed set of constants:\n\n\`\`\`kotlin\nenum class Direction {\n    NORTH, SOUTH, EAST, WEST\n}\n\`\`\`\n\n**Enums with properties:**\n\n\`\`\`kotlin\nenum class Color(val hex: String) {\n    RED("#FF0000"),\n    GREEN("#00FF00"),\n    BLUE("#0000FF")\n}\n\`\`\`\n\n**Enums with abstract methods:**\n\n\`\`\`kotlin\nenum class Operation {\n    ADD {\n        override fun apply(a: Int, b: Int) = a + b\n    },\n    SUB {\n        override fun apply(a: Int, b: Int) = a - b\n    };\n    abstract fun apply(a: Int, b: Int): Int\n}\n\`\`\`\n\n**Useful methods:**\n- \`valueOf("NORTH")\` - get enum by name\n- \`entries\` - list of all enum values\n- \`.name\` / \`.ordinal\` - name string and index`,
   exercises: [
     {
       id: 'kt-enum-1',
@@ -74,7 +74,7 @@ export const section: LessonSection = {
       goal: 'Write a function describe(season: Season): String using when that returns a description for each season.',
       skeleton: `enum class Season { SPRING, SUMMER, AUTUMN, WINTER }\n\nfun describe(season: Season): String {\n    // use when\n}`,
       solution: `enum class Season { SPRING, SUMMER, AUTUMN, WINTER }\n\nfun describe(season: Season): String {\n    return when (season) {\n        Season.SPRING -> "Flowers bloom"\n        Season.SUMMER -> "Sun shines"\n        Season.AUTUMN -> "Leaves fall"\n        Season.WINTER -> "Snow falls"\n    }\n}`,
-      hints: ['when on enum is exhaustive — no else needed if all covered.', 'Match each Season constant.', 'Season.SPRING -> "Flowers bloom"'],
+      hints: ['when on enum is exhaustive - no else needed if all covered.', 'Match each Season constant.', 'Season.SPRING -> "Flowers bloom"'],
       concepts: ['enum-class', 'when-expression'],
     },
     {

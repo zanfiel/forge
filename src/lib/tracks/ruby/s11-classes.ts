@@ -5,7 +5,7 @@ export const section: LessonSection = {
   title: '11. Classes',
   explanation: `## Classes in Ruby
 
-Ruby is a purely object-oriented language — everything is an object. Classes are blueprints for creating objects.
+Ruby is a purely object-oriented language - everything is an object. Classes are blueprints for creating objects.
 
 \`\`\`ruby
 class Dog

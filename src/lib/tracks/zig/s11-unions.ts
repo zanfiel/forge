@@ -4,7 +4,7 @@ export const section: LessonSection = {
   id: 'zig-union',
   title: '11. Unions',
   language: 'zig',
-  explanation: `Unions hold one of several possible types at a time. A bare union has no tag — you must track which field is active yourself.
+  explanation: `Unions hold one of several possible types at a time. A bare union has no tag - you must track which field is active yourself.
 
 \`\`\`zig
 const Data = union { int: i64, float: f64, boolean: bool };

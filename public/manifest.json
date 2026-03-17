@@ -1,7 +1,7 @@
 {
   "name": "Forge",
   "short_name": "Forge",
-  "description": "Code editor — edit files, learn to code, AI assistant",
+  "description": "Code editor - edit files, learn to code, AI assistant",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0d1117",

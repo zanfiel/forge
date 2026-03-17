@@ -41,7 +41,7 @@ fn Stack(comptime T: type) type {
 const IntStack = Stack(i32);
 \`\`\`
 
-**Duck typing:** anytype accepts anything with the right methods — no interface declaration needed.`,
+**Duck typing:** anytype accepts anything with the right methods - no interface declaration needed.`,
   exercises: [
     {
       id: 'zig-anytype-1',

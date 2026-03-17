@@ -3,7 +3,7 @@ import type { LessonSection } from '../../../stores/app.svelte.ts';
 export const section: LessonSection = {
   id: 'kt-seq',
   title: '19. Sequences',
-  explanation: `## Sequences in Kotlin\n\nSequences are lazily evaluated collections — elements are processed one at a time, on demand:\n\n\`\`\`kotlin\nval result = sequenceOf(1, 2, 3, 4, 5)\n    .filter { it > 2 }\n    .map { it * 10 }\n    .first()  // processes only until first match: 30\n\`\`\`\n\n**Creating sequences:**\n\n\`\`\`kotlin\nval fromList = listOf(1, 2, 3).asSequence()\nval generated = generateSequence(1) { it * 2 }  // 1, 2, 4, 8, ...\nval built = sequence {\n    yield(1)\n    yieldAll(listOf(2, 3))\n    yield(4)\n}\n\`\`\`\n\n**When to use sequences:**\n- Large collections with chained operations\n- When you only need a subset of results\n- Infinite data streams\n\n**List vs Sequence:** Lists create intermediate collections at each step. Sequences process element-by-element lazily.`,
+  explanation: `## Sequences in Kotlin\n\nSequences are lazily evaluated collections - elements are processed one at a time, on demand:\n\n\`\`\`kotlin\nval result = sequenceOf(1, 2, 3, 4, 5)\n    .filter { it > 2 }\n    .map { it * 10 }\n    .first()  // processes only until first match: 30\n\`\`\`\n\n**Creating sequences:**\n\n\`\`\`kotlin\nval fromList = listOf(1, 2, 3).asSequence()\nval generated = generateSequence(1) { it * 2 }  // 1, 2, 4, 8, ...\nval built = sequence {\n    yield(1)\n    yieldAll(listOf(2, 3))\n    yield(4)\n}\n\`\`\`\n\n**When to use sequences:**\n- Large collections with chained operations\n- When you only need a subset of results\n- Infinite data streams\n\n**List vs Sequence:** Lists create intermediate collections at each step. Sequences process element-by-element lazily.`,
   exercises: [
     {
       id: 'kt-seq-1',
@@ -74,7 +74,7 @@ export const section: LessonSection = {
       goal: 'Fix the code that does nothing because it lacks a terminal operation.',
       skeleton: `fun main() {\n    val nums = listOf(1, 2, 3, 4, 5)\n    nums.asSequence()\n        .filter { it > 2 }\n        .map { it * 10 }\n    println("Done")  // filter and map never execute!\n}`,
       solution: `fun main() {\n    val nums = listOf(1, 2, 3, 4, 5)\n    val result = nums.asSequence()\n        .filter { it > 2 }\n        .map { it * 10 }\n        .toList()\n    println(result)\n}`,
-      hints: ['Sequences are lazy — nothing happens without a terminal operation.', 'Add toList() to trigger evaluation.', '.toList() at the end'],
+      hints: ['Sequences are lazy - nothing happens without a terminal operation.', 'Add toList() to trigger evaluation.', '.toList() at the end'],
       concepts: ['lazy-evaluation'],
     },
     {

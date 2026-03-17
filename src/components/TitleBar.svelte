@@ -1,5 +1,5 @@
 <!--
-  TitleBar.svelte — Custom Window Title Bar (Tauri Edition)
+  TitleBar.svelte - Custom Window Title Bar (Tauri Edition)
   
   Uses data-tauri-drag-region for window dragging instead of -webkit-app-region.
   Window controls use @tauri-apps/api/window.

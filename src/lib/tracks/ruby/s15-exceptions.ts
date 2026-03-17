@@ -208,7 +208,7 @@ end`,
       hints: [
         'List more specific exceptions first.',
         'Bare `rescue` catches StandardError and its subclasses.',
-        'Order matters — first matching rescue wins.',
+        'Order matters - first matching rescue wins.',
       ],
       concepts: ['multiple-rescue', 'exception-hierarchy', 'specificity'],
     },

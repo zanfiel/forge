@@ -3,7 +3,7 @@ import type { LessonSection } from '../../../stores/app.svelte.ts';
 export const section: LessonSection = {
   id: 'kt-types',
   title: '02. Types',
-  explanation: `## Basic Types in Kotlin\n\nKotlin has a rich set of built-in types:\n\n| Type | Size | Example |\n|------|------|---------|\n| Byte | 8-bit | 127 |\n| Short | 16-bit | 32767 |\n| Int | 32-bit | 2147483647 |\n| Long | 64-bit | 9223372036854775807L |\n| Float | 32-bit | 3.14f |\n| Double | 64-bit | 3.14 |\n| Boolean | - | true / false |\n| Char | 16-bit | 'A' |\n| String | - | "Hello" |\n\n\`\`\`kotlin\nval age: Int = 30\nval price: Double = 19.99\nval letter: Char = 'K'\nval flag: Boolean = true\nval big: Long = 100L\n\`\`\`\n\n**Type conversions** must be explicit — Kotlin does NOT auto-widen:\n\n\`\`\`kotlin\nval i: Int = 42\nval l: Long = i.toLong()  // explicit conversion\nval d: Double = i.toDouble()\n\`\`\`\n\n**Any** is the root of the type hierarchy (like Object in Java).`,
+  explanation: `## Basic Types in Kotlin\n\nKotlin has a rich set of built-in types:\n\n| Type | Size | Example |\n|------|------|---------|\n| Byte | 8-bit | 127 |\n| Short | 16-bit | 32767 |\n| Int | 32-bit | 2147483647 |\n| Long | 64-bit | 9223372036854775807L |\n| Float | 32-bit | 3.14f |\n| Double | 64-bit | 3.14 |\n| Boolean | - | true / false |\n| Char | 16-bit | 'A' |\n| String | - | "Hello" |\n\n\`\`\`kotlin\nval age: Int = 30\nval price: Double = 19.99\nval letter: Char = 'K'\nval flag: Boolean = true\nval big: Long = 100L\n\`\`\`\n\n**Type conversions** must be explicit - Kotlin does NOT auto-widen:\n\n\`\`\`kotlin\nval i: Int = 42\nval l: Long = i.toLong()  // explicit conversion\nval d: Double = i.toDouble()\n\`\`\`\n\n**Any** is the root of the type hierarchy (like Object in Java).`,
   exercises: [
     {
       id: 'kt-types-1',
@@ -143,7 +143,7 @@ export const section: LessonSection = {
       type: 'fix-bug',
       difficulty: 'beginner',
       language: 'kotlin',
-      goal: 'Fix the code so it compiles — the Float needs a proper literal.',
+      goal: 'Fix the code so it compiles - the Float needs a proper literal.',
       skeleton: `fun main() {\n    val price: Float = 9.99\n    println(price)\n}`,
       solution: `fun main() {\n    val price: Float = 9.99f\n    println(price)\n}`,
       hints: ['9.99 is a Double literal by default.', 'Float literals need the f suffix.', '9.99f'],
@@ -158,7 +158,7 @@ export const section: LessonSection = {
       goal: 'Write a function safeDivide(a: Int, b: Int): Double that returns a/b as a Double (handle division properly).',
       skeleton: `fun safeDivide(a: Int, b: Int): Double {\n    // divide and return as Double\n}`,
       solution: `fun safeDivide(a: Int, b: Int): Double {\n    return a.toDouble() / b.toDouble()\n}`,
-      hints: ['Convert to Double before dividing.', 'a.toDouble() / b.toDouble()', 'Integer division truncates — convert first.'],
+      hints: ['Convert to Double before dividing.', 'a.toDouble() / b.toDouble()', 'Integer division truncates - convert first.'],
       concepts: ['type-conversion', 'Double'],
     },
     {

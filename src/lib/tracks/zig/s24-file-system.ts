@@ -866,7 +866,7 @@ pub fn main() !void {
 }`,
       hints: [
         'Write to a .tmp file first, then rename atomically.',
-        'rename is atomic on POSIX — readers either get old or new.',
+        'rename is atomic on POSIX - readers either get old or new.',
         'Output: ok.',
       ],
       concepts: ['atomic write', 'temp file', 'rename'],

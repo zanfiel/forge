@@ -1,5 +1,5 @@
 <!--
-  ContextMenu.svelte — Right-click context menu
+  ContextMenu.svelte - Right-click context menu
   Reusable context menu positioned at cursor location.
 -->
 

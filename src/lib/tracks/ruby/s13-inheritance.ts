@@ -5,7 +5,7 @@ export const section: LessonSection = {
   title: '13. Inheritance',
   explanation: `## Inheritance in Ruby
 
-Ruby supports **single inheritance** — each class can inherit from exactly one parent class. All classes ultimately inherit from \`Object\`, which inherits from \`BasicObject\`.
+Ruby supports **single inheritance** - each class can inherit from exactly one parent class. All classes ultimately inherit from \`Object\`, which inherits from \`BasicObject\`.
 
 \`\`\`ruby
 class Animal
