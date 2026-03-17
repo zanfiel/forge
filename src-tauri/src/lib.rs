@@ -54,8 +54,6 @@ const IGNORE_DIRS: &[&str] = &[
 
 const SYNAPSE_URL: &str = "http://127.0.0.1:4300";
 const ENGRAM_LOCAL: &str = "http://127.0.0.1:4200";
-const ENGRAM_BAV: &str = ""; // Set FORGE_ENGRAM_URL env var
-const ENGRAM_ROCKY: &str = ""; // Set FORGE_ENGRAM_FALLBACK_URL env var
 
 static LAST_PRIMARY_RECHECK: std::sync::OnceLock<Mutex<Option<Instant>>> = std::sync::OnceLock::new();
 
@@ -71,7 +69,17 @@ async fn try_engram_post(path: &str, body: serde_json::Value) -> Result<serde_js
         .build()
         .map_err(|e| e.to_string())?;
 
-    let urls = [ENGRAM_LOCAL, ENGRAM_BAV, ENGRAM_ROCKY];
+    let mut urls: Vec<String> = vec![ENGRAM_LOCAL.to_string()];
+    if let Ok(fallback) = env::var("ENGRAM_URL") {
+        if !fallback.trim().is_empty() && fallback != ENGRAM_LOCAL {
+            urls.push(fallback);
+        }
+    }
+    if let Ok(fallback2) = env::var("ENGRAM_FALLBACK_URL") {
+        if !fallback2.trim().is_empty() && !urls.contains(&fallback2) {
+            urls.push(fallback2);
+        }
+    }
     let key = engram_api_key();
     let last_check = LAST_PRIMARY_RECHECK.get_or_init(|| Mutex::new(None));
 

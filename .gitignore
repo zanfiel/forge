@@ -1,6 +1,9 @@
 node_modules/
 dist/
-target/
+release/
+.svelte-kit/
+*.exe
+*.log
 .env
 *.bak
 *.tmp
@@ -9,3 +12,5 @@ Thumbs.db
 AGENTS.md
 backup-sync-*/
 backup-deps-*/
+backup-public-sync-*/
+backup-public-parity-*/

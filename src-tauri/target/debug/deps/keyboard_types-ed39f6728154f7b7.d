@@ -1,0 +1,11 @@
+C:\Users\Zan\forge-tauri\src-tauri\target\debug\deps\keyboard_types-ed39f6728154f7b7.d: C:\Users\Zan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\keyboard-types-0.7.0\src\lib.rs C:\Users\Zan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\keyboard-types-0.7.0\src\code.rs C:\Users\Zan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\keyboard-types-0.7.0\src\key.rs C:\Users\Zan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\keyboard-types-0.7.0\src\location.rs C:\Users\Zan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\keyboard-types-0.7.0\src\modifiers.rs C:\Users\Zan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\keyboard-types-0.7.0\src\shortcuts.rs C:\Users\Zan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\keyboard-types-0.7.0\src\webdriver.rs
+
+C:\Users\Zan\forge-tauri\src-tauri\target\debug\deps\libkeyboard_types-ed39f6728154f7b7.rmeta: C:\Users\Zan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\keyboard-types-0.7.0\src\lib.rs C:\Users\Zan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\keyboard-types-0.7.0\src\code.rs C:\Users\Zan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\keyboard-types-0.7.0\src\key.rs C:\Users\Zan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\keyboard-types-0.7.0\src\location.rs C:\Users\Zan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\keyboard-types-0.7.0\src\modifiers.rs C:\Users\Zan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\keyboard-types-0.7.0\src\shortcuts.rs C:\Users\Zan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\keyboard-types-0.7.0\src\webdriver.rs
+
+C:\Users\Zan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\keyboard-types-0.7.0\src\lib.rs:
+C:\Users\Zan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\keyboard-types-0.7.0\src\code.rs:
+C:\Users\Zan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\keyboard-types-0.7.0\src\key.rs:
+C:\Users\Zan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\keyboard-types-0.7.0\src\location.rs:
+C:\Users\Zan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\keyboard-types-0.7.0\src\modifiers.rs:
+C:\Users\Zan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\keyboard-types-0.7.0\src\shortcuts.rs:
+C:\Users\Zan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\keyboard-types-0.7.0\src\webdriver.rs:
