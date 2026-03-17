@@ -28,10 +28,10 @@ cat /var/log/syslog | grep "error" | wc -l`,
       language: 'bash',
       goal: 'Sort the output of a command and take the top 3 lines.',
       skeleton: `#!/bin/bash
-cat /etc/passwd | cut -d: -f1 | ___ | ___ 3`,
+cat /etc/passwd | cut -d: -f1 | ___ | ___ -3`,
       solution: `#!/bin/bash
-cat /etc/passwd | cut -d: -f1 | sort | head 3`,
-      hints: ['sort sorts lines alphabetically.', 'head N prints the first N lines.', 'sort | head 3'],
+cat /etc/passwd | cut -d: -f1 | sort | head -3`,
+      hints: ['sort sorts lines alphabetically.', 'head -N prints the first N lines.', 'sort | head -3'],
       concepts: ['sort', 'head', 'pipeline'],
     },
     {
@@ -44,7 +44,7 @@ cat /etc/passwd | cut -d: -f1 | sort | head 3`,
       skeleton: `#!/bin/bash
 echo "apple banana cherry" | tr ' ' '\\n' | ___ echo`,
       solution: `#!/bin/bash
-echo "apple banana cherry" | tr ' ' '\n' | xargs echo`,
+echo "apple banana cherry" | tr ' ' '\\n' | xargs echo`,
       hints: ['xargs converts lines to arguments.', 'xargs echo passes each line as an argument to echo.', 'xargs'],
       concepts: ['xargs', 'pipeline'],
     },
