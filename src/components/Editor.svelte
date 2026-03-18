@@ -114,7 +114,13 @@
     }
 
     let model = models.get(tab.path);
-    if (!model) {
+    if (model) {
+      // Sync external content changes (AI edits, checkpoint rewinds, refreshes)
+      const current = model.getValue();
+      if (!tab.modified && current !== tab.content) {
+        model.pushEditOperations([], [{ range: model.getFullModelRange(), text: tab.content }], () => null);
+      }
+    } else {
       const uri = monaco.Uri.parse('file://' + tab.path.replace(/\\/g, '/'));
       model = monaco.editor.createModel(tab.content, tab.language, uri);
       models.set(tab.path, model);
@@ -147,6 +153,10 @@
 
   function closeTab(index: number) {
     const tab = store.openTabs[index];
+    if (tab.modified) {
+      const confirmed = window.confirm(`${tab.name} has unsaved changes. Close anyway?`);
+      if (!confirmed) return;
+    }
     const model = models.get(tab.path);
     if (model) {
       model.dispose();

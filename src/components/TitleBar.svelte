@@ -21,8 +21,25 @@
     api.isMaximized().then(v => maximized = v);
   });
 
+  async function handleClose() {
+    const unsaved = store.openTabs.filter(t => t.modified);
+    if (unsaved.length > 0) {
+      const names = unsaved.map(t => t.name).join(", ");
+      const confirmed = window.confirm(`You have unsaved changes in: ${names}. Close anyway?`);
+      if (!confirmed) return;
+    }
+    await api.close();
+  }
+
   function togglePanel(panel: 'fileTree' | 'chat' | 'terminal') {
-    store.panels[panel] = !store.panels[panel];
+    if (panel === 'fileTree') {
+      store.leftSidebarOpen = !store.leftSidebarOpen;
+    } else if (panel === 'terminal') {
+      store.bottomPanelOpen = !store.bottomPanelOpen;
+      if (store.bottomPanelOpen) store.bottomPanelTab = 'terminal';
+    } else {
+      store.panels[panel] = !store.panels[panel];
+    }
   }
 </script>
 
@@ -36,7 +53,7 @@
       <button class="tb-btn" onclick={onOpenProject} title="Open Folder">
         📁
       </button>
-      <button class="tb-btn" class:active={store.panels.fileTree}
+      <button class="tb-btn" class:active={store.leftSidebarOpen}
               onclick={() => togglePanel('fileTree')} title="Toggle File Tree (Ctrl+B)">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
           <path d="M1 2h4l1.5 1.5H15v11H1V2zm1 1v10h12V4.5H6.2L4.7 3H2z"/>
@@ -48,7 +65,7 @@
           <path d="M2 2h12v9H5l-3 3V2zm1 1v8.3l1.7-1.7.3-.1H13V3H3z"/>
         </svg>
       </button>
-      <button class="tb-btn" class:active={store.panels.terminal}
+      <button class="tb-btn" class:active={store.bottomPanelOpen}
               onclick={() => togglePanel('terminal')} title="Toggle Terminal (Ctrl+`)">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
           <path d="M2 3h12v10H2V3zm1 1v8h10V4H3zm1.5 1.5l2.5 2-2.5 2-.7-.7L5.6 7.5 3.8 6.2l.7-.7zM7 10h3v1H7v-1z"/>
@@ -70,7 +87,7 @@
         <svg width="12" height="12" viewBox="0 0 12 12"><rect x="2" y="2" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
       {/if}
     </button>
-    <button class="ctrl-btn close" onclick={() => api.close()} title="Close">
+    <button class="ctrl-btn close" onclick={handleClose} title="Close">
       <svg width="12" height="12" viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5"/></svg>
     </button>
   </div>

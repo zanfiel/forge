@@ -50,6 +50,34 @@ const IGNORE_DIRS: &[&str] = &[
     ".cargo", ".cache", "coverage", ".turbo",
 ];
 
+// ─── Path Security ──────────────────────────────────────
+
+/// Returns true only if `path` is within (or equal to) `project_dir`.
+/// Resolves `..` components via canonicalize to prevent traversal attacks.
+fn is_within_project(project_dir: &str, path: &str) -> bool {
+    if project_dir.is_empty() {
+        return false;
+    }
+    let Ok(base) = std::fs::canonicalize(project_dir) else {
+        return false;
+    };
+    let candidate = Path::new(path);
+    // For paths that already exist, canonicalize directly.
+    // For new files (not yet on disk), canonicalize the parent and append the filename.
+    let resolved = if candidate.exists() {
+        std::fs::canonicalize(candidate).ok()
+    } else {
+        candidate
+            .parent()
+            .and_then(|p| std::fs::canonicalize(p).ok())
+            .map(|p| p.join(candidate.file_name().unwrap_or_default()))
+    };
+    let Some(resolved) = resolved else {
+        return false;
+    };
+    resolved.starts_with(&base)
+}
+
 // ─── Remote Endpoints / Failover ─────────────────────────
 
 const SYNAPSE_URL: &str = "http://127.0.0.1:4300";
@@ -139,7 +167,7 @@ fn read_dir(state: State<AppState>, dir_path: Option<String>) -> Vec<FileEntry> 
 }
 
 fn read_dir_recursive(dir: &str, depth: usize) -> Vec<FileEntry> {
-    if depth > 6 {
+    if depth > 10 {
         return vec![];
     }
 
@@ -154,9 +182,18 @@ fn read_dir_recursive(dir: &str, depth: usize) -> Vec<FileEntry> {
         let file_path = entry.path();
         let is_dir = file_path.is_dir();
 
-        // Skip hidden files at root level (except .env)
-        if depth == 0 && name.starts_with('.') && name != ".env" {
-            continue;
+        // At root depth, show common dotfiles; hide the rest
+        if depth == 0 && name.starts_with('.') {
+            const SHOW_ROOT_DOTFILES: &[&str] = &[
+                ".env", ".env.local", ".env.example",
+                ".gitignore", ".gitattributes",
+                ".eslintrc", ".eslintrc.js", ".eslintrc.json", ".eslintrc.cjs",
+                ".prettierrc", ".prettierrc.js", ".prettierrc.json",
+                ".editorconfig",
+            ];
+            if !SHOW_ROOT_DOTFILES.contains(&name.as_str()) {
+                continue;
+            }
         }
         // Skip ignored directories
         if is_dir && IGNORE_DIRS.contains(&name.as_str()) {
@@ -200,21 +237,33 @@ fn read_dir_recursive(dir: &str, depth: usize) -> Vec<FileEntry> {
         .collect()
 }
 
-/// Read a file's contents
+/// Read a file's contents — scoped to project directory
 #[tauri::command]
-fn read_file(file_path: String) -> Option<String> {
+fn read_file(state: State<AppState>, file_path: String) -> Option<String> {
+    let pd = state.project_dir.lock().unwrap().clone();
+    if !is_within_project(&pd, &file_path) {
+        return None;
+    }
     fs::read_to_string(&file_path).ok()
 }
 
-/// Write content to a file
+/// Write content to a file — scoped to project directory
 #[tauri::command]
-fn write_file(file_path: String, content: String) -> bool {
+fn write_file(state: State<AppState>, file_path: String, content: String) -> bool {
+    let pd = state.project_dir.lock().unwrap().clone();
+    if !is_within_project(&pd, &file_path) {
+        return false;
+    }
     fs::write(&file_path, &content).is_ok()
 }
 
-/// Get file stats
+/// Get file stats — scoped to project directory
 #[tauri::command]
-fn file_stat(file_path: String) -> Option<FileStat> {
+fn file_stat(state: State<AppState>, file_path: String) -> Option<FileStat> {
+    let pd = state.project_dir.lock().unwrap().clone();
+    if !is_within_project(&pd, &file_path) {
+        return None;
+    }
     let meta = fs::metadata(&file_path).ok()?;
     let modified = meta
         .modified()

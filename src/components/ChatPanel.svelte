@@ -6,7 +6,7 @@
 -->
 
 <script lang="ts">
-  import { onMount, tick } from 'svelte';
+  import { onMount, onDestroy, tick } from 'svelte';
   import { store, uid, type ChatMessage, type ToolCall, type PendingEdit, type Checkpoint } from '../stores/app.svelte.ts';
   import * as api from '../lib/api';
   import DiffView from './DiffView.svelte';
@@ -60,8 +60,10 @@
   let scrollEl: HTMLDivElement;
   let mode = $state<'chat' | 'agent' | 'teach'>('agent');
 
+  let unlistenStream: (() => void) | undefined;
+
   onMount(() => {
-    api.onStreamEvent((event: any) => {
+    unlistenStream = api.onStreamEvent((event: any) => {
       const streamingMsg = store.chatMessages.find(m => m.isStreaming);
       if (!streamingMsg) return;
 
@@ -129,6 +131,10 @@
           break;
       }
     });
+  });
+
+  onDestroy(() => {
+    unlistenStream?.();
   });
 
   function createCheckpoint(description: string, filePath: string, content: string) {
