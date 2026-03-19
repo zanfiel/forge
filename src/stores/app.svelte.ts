@@ -118,6 +118,20 @@ export interface InstructorState {
   chatMessages: ChatMessage[];
 }
 
+// ─── Layout Types ───────────────────────────
+
+export type ActivityView = 'explorer' | 'search' | 'source-control' | 'settings';
+export type BottomPanelTab = 'terminal' | 'problems' | 'output';
+
+export interface Problem {
+  file: string;
+  line: number;
+  col: number;
+  severity: 'error' | 'warning' | 'info';
+  message: string;
+  source?: string;
+}
+
 // ─── The Store ──────────────────────────────
 
 class AppStore {
@@ -138,6 +152,17 @@ class AppStore {
     chat: true,
     terminal: false,
   });
+
+  // ─── Activity Bar & Layout ──────────────
+  activityView = $state<ActivityView>('explorer');
+  leftSidebarOpen = $state(true);
+  sidebarWidth = $state(260);
+  rightPanelWidth = $state(380);
+  bottomPanelOpen = $state(false);
+  bottomPanelHeight = $state(200);
+  bottomPanelTab = $state<BottomPanelTab>('terminal');
+  problems = $state<Problem[]>([]);
+  outputLog = $state<string[]>([]);
 
   instructor = $state<InstructorState>({
     activeTrackId: null,

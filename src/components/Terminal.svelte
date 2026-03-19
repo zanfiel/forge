@@ -133,10 +133,6 @@
 </script>
 
 <div class="terminal-wrapper">
-  <div class="terminal-header">
-    <span class="terminal-title">Terminal</span>
-    <button class="terminal-close" onclick={() => store.panels.terminal = false}>×</button>
-  </div>
   <div bind:this={container} class="terminal-container"></div>
 </div>
 
@@ -146,40 +142,6 @@
     flex-direction: column;
     height: 100%;
     background: #0a0a0f;
-  }
-
-  .terminal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 4px 10px;
-    background: var(--bg-surface);
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-
-  .terminal-title {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .terminal-close {
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 3px;
-    font-size: 14px;
-    color: var(--text-muted);
-    transition: all 0.1s;
-  }
-  .terminal-close:hover {
-    background: var(--bg-active);
-    color: var(--text-primary);
   }
 
   .terminal-container {
