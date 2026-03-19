@@ -1,5 +1,5 @@
 <!--
-  ChatPanel.svelte — AI Chat Interface (Tauri Edition)
+  ChatPanel.svelte - AI Chat Interface (Tauri Edition)
   
   Talks to Synapse via Tauri invoke → Rust HTTP → Synapse.
   Streaming events come via Tauri's event system instead of Electron IPC.
@@ -103,7 +103,7 @@
             newContent: event.new_content || event.data?.new_content,
             toolCallId: event.tool_call_id || event.data?.tool_call_id,
           }];
-          // Pause thinking indicator — waiting for user accept/reject
+          // Pause thinking indicator - waiting for user accept/reject
           store.isAiThinking = false;
           scrollToBottom();
           break;
@@ -219,7 +219,7 @@
     const currentTab = store.activeTab;
 
     if (mode === 'chat') {
-      fullMessage = `[Mode: chat-only — respond conversationally. Do NOT use tools.]\n\n${text}`;
+      fullMessage = `[Mode: chat-only - respond conversationally. Do NOT use tools.]\n\n${text}`;
     } else if (mode === 'teach' && currentTab) {
       fullMessage = `[Context: I'm looking at ${currentTab.name} (${currentTab.language})]\n\n${text}`;
     }
@@ -230,7 +230,7 @@
       fullMessage += `\n\n---\n# Editor Context\n${editorCtx}`;
     }
 
-    // Inject Engram context — query with project name + user message (non-blocking)
+    // Inject Engram context - query with project name + user message (non-blocking)
     const projectName = store.projectDir.split(/[\\/]/).pop() || 'forge';
     const engramCtx = await api.getEngramContext(`${projectName} ${text}`, 1500);
     if (engramCtx) {
@@ -305,7 +305,7 @@
     const fileName = tab?.name || 'this code';
 
     const prompts: Record<string, string> = {
-      explain: `Explain what ${fileName} does. Break it down simply — I'm learning.`,
+      explain: `Explain what ${fileName} does. Break it down simply - I'm learning.`,
       fix: `Check ${fileName} for bugs or issues. Explain what you find.`,
       improve: `How could I improve ${fileName}? Focus on readability and best practices.`,
       test: `Write tests for ${fileName}. Explain the testing approach.`,

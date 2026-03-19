@@ -18,12 +18,25 @@
   import { store } from './stores/app.svelte.ts';
   import * as api from './lib/api';
 
+  /** In web mode, show project picker first (no project = show picker) */
+  let webReady = $state(api.isDesktop);
+
+  /** Command Palette state */
+  let showPalette = $state(false);
+  let paletteMode = $state<'command' | 'file' | 'goto'>('command');
+
   onMount(async () => {
     const dir = await api.getProjectDir();
     if (dir) {
       store.projectDir = dir;
       store.fileTree = await api.readDir(dir);
+      webReady = true;
+      // Check git status
+      refreshGitStatus();
+    } else if (api.isDesktop) {
+      webReady = true;
     }
+    // If web mode and no project, webReady stays false -> show project picker
   });
 
   async function openProject() {
@@ -31,6 +44,7 @@
     if (dir) {
       store.projectDir = dir;
       store.fileTree = await api.readDir(dir);
+      refreshGitStatus();
     }
   }
 
@@ -63,6 +77,268 @@
       store.activityView = 'search';
       store.leftSidebarOpen = true;
     }
+
+    // Ctrl+Shift+P: command palette
+    if (e.ctrlKey && e.shiftKey && e.key === 'P') {
+      e.preventDefault();
+      paletteMode = 'command';
+      showPalette = true;
+    }
+
+    // Ctrl+P: file picker
+    if (e.ctrlKey && !e.shiftKey && e.key === 'p') {
+      e.preventDefault();
+      paletteMode = 'file';
+      showPalette = true;
+    }
+
+    // Ctrl+G: goto line
+    if (e.ctrlKey && !e.shiftKey && e.key === 'g') {
+      e.preventDefault();
+      paletteMode = 'goto';
+      showPalette = true;
+    }
+
+    // Ctrl+B: toggle file tree
+    if (e.ctrlKey && !e.shiftKey && e.key === 'b') {
+      e.preventDefault();
+      store.panels.fileTree = !store.panels.fileTree;
+    }
+
+    // Ctrl+L: toggle chat panel
+    if (e.ctrlKey && !e.shiftKey && e.key === 'l') {
+      e.preventDefault();
+      store.panels.chat = !store.panels.chat;
+    }
+
+    // Ctrl+Shift+F: project-wide search
+    if (e.ctrlKey && e.shiftKey && e.key === 'F') {
+      e.preventDefault();
+      store.panels.search = !store.panels.search;
+      if (store.panels.search) {
+        store.panels.fileTree = false; // Replace file tree with search
+      }
+    }
+
+    // Ctrl+Shift+T: reopen closed tab
+    if (e.ctrlKey && e.shiftKey && e.key === 'T') {
+      e.preventDefault();
+      reopenClosedTab();
+    }
+
+    // Ctrl+W: close current tab
+    if (e.ctrlKey && !e.shiftKey && e.key === 'w') {
+      e.preventDefault();
+      if (store.openTabs.length > 0) {
+        editorComponent?.closeTab(store.activeTabIndex);
+      }
+    }
+
+    // Ctrl+Tab: next tab
+    if (e.ctrlKey && e.key === 'Tab' && !e.shiftKey) {
+      e.preventDefault();
+      if (store.openTabs.length > 1) {
+        store.activeTabIndex = (store.activeTabIndex + 1) % store.openTabs.length;
+      }
+    }
+
+    // Ctrl+Shift+Tab: previous tab
+    if (e.ctrlKey && e.key === 'Tab' && e.shiftKey) {
+      e.preventDefault();
+      if (store.openTabs.length > 1) {
+        store.activeTabIndex = (store.activeTabIndex - 1 + store.openTabs.length) % store.openTabs.length;
+      }
+    }
+  }
+
+  async function reopenClosedTab() {
+    const closed = store.reopenClosedTab();
+    if (!closed) return;
+
+    // Re-read file to get latest content
+    const content = await api.readFile(closed.tab.path);
+    if (content === null) {
+      store.notify('warning', `File no longer exists: ${closed.tab.name}`);
+      return;
+    }
+
+    const tab = { ...closed.tab, content, modified: false };
+    const insertIdx = Math.min(closed.index, store.openTabs.length);
+    store.openTabs.splice(insertIdx, 0, tab);
+    store.activeTabIndex = insertIdx;
+    store.notify('info', `Reopened ${tab.name}`);
+  }
+
+  // Open a file from search results or palette at a specific line
+  async function openFileAtLine(path: string, line?: number) {
+    const existingIdx = store.openTabs.findIndex(t => t.path === path);
+    if (existingIdx !== -1) {
+      store.activeTabIndex = existingIdx;
+      if (line && editorComponent?.getEditor?.()) {
+        setTimeout(() => {
+          const editor = editorComponent.getEditor();
+          editor.revealLineInCenter(line);
+          editor.setPosition({ lineNumber: line, column: 1 });
+          editor.focus();
+        }, 50);
+      }
+      return;
+    }
+    const content = await api.readFile(path);
+    if (content === null) return;
+    const name = path.split(/[\\/]/).pop() || path;
+    store.openTabs.push({
+      path,
+      name,
+      content,
+      modified: false,
+      language: detectLanguage(name),
+    });
+    store.activeTabIndex = store.openTabs.length - 1;
+    if (line) {
+      setTimeout(() => {
+        const editor = editorComponent?.getEditor?.();
+        if (editor) {
+          editor.revealLineInCenter(line);
+          editor.setPosition({ lineNumber: line, column: 1 });
+          editor.focus();
+        }
+      }, 100);
+    }
+  }
+
+  // Command palette handler
+  async function handlePaletteOpenFile(path: string) {
+    await openFileAtLine(path);
+  }
+
+  function handlePaletteCommand(commandId: string) {
+    // Handle goto-line with argument
+    if (commandId.startsWith('goto-line:')) {
+      const line = parseInt(commandId.split(':')[1], 10);
+      if (!isNaN(line) && editorComponent?.getEditor?.()) {
+        const editor = editorComponent.getEditor();
+        editor.revealLineInCenter(line);
+        editor.setPosition({ lineNumber: line, column: 1 });
+        editor.focus();
+      }
+      return;
+    }
+
+    switch (commandId) {
+      case 'toggle-file-tree':
+        store.panels.search = false;
+        store.panels.fileTree = !store.panels.fileTree;
+        break;
+      case 'toggle-terminal':
+        store.panels.terminal = !store.panels.terminal;
+        break;
+      case 'toggle-chat':
+        store.panels.chat = !store.panels.chat;
+        break;
+      case 'toggle-search':
+        store.panels.search = !store.panels.search;
+        if (store.panels.search) store.panels.fileTree = false;
+        break;
+      case 'mode-chat':
+        store.panels.chat = true;
+        store.rightPanel = 'chat';
+        break;
+      case 'mode-instructor':
+        store.panels.chat = true;
+        store.rightPanel = 'instructor';
+        break;
+      case 'open-folder':
+        openProject();
+        break;
+      case 'save-file': {
+        const editor = editorComponent?.getEditor?.();
+        if (editor) editor.trigger('command-palette', 'forge-save', null);
+        break;
+      }
+      case 'close-tab':
+        if (store.openTabs.length > 0) {
+          editorComponent?.closeTab(store.activeTabIndex);
+        }
+        break;
+      case 'close-all-tabs':
+        store.openTabs = [];
+        store.activeTabIndex = 0;
+        break;
+      case 'reopen-closed-tab':
+        reopenClosedTab();
+        break;
+      case 'goto-line': {
+        paletteMode = 'goto';
+        showPalette = true;
+        break;
+      }
+      case 'find-in-file': {
+        const editor = editorComponent?.getEditor?.();
+        if (editor) editor.trigger('command-palette', 'actions.find', null);
+        break;
+      }
+      case 'find-in-project':
+        store.panels.search = true;
+        store.panels.fileTree = false;
+        break;
+      case 'replace-in-file': {
+        const editor = editorComponent?.getEditor?.();
+        if (editor) editor.trigger('command-palette', 'editor.action.startFindReplaceAction', null);
+        break;
+      }
+      case 'new-file':
+        store.openTabs.push({
+          path: `untitled-${Date.now()}`,
+          name: 'Untitled',
+          content: '',
+          modified: true,
+          language: 'plaintext',
+        });
+        store.activeTabIndex = store.openTabs.length - 1;
+        break;
+      case 'format-document': {
+        const editor = editorComponent?.getEditor?.();
+        if (editor) editor.trigger('command-palette', 'editor.action.formatDocument', null);
+        break;
+      }
+      case 'toggle-word-wrap': {
+        const editor = editorComponent?.getEditor?.();
+        if (editor) {
+          const current = editor.getOption(/* wordWrap */ 130);
+          editor.updateOptions({ wordWrap: current === 'off' ? 'on' : 'off' });
+        }
+        break;
+      }
+      case 'toggle-minimap': {
+        const editor = editorComponent?.getEditor?.();
+        if (editor) {
+          const current = editor.getOption(/* minimap */ 72);
+          editor.updateOptions({ minimap: { enabled: !current?.enabled } });
+        }
+        break;
+      }
+      case 'change-theme':
+        // Placeholder for theme switching
+        store.notify('info', 'Theme switching coming soon');
+        break;
+      case 'zoom-in': {
+        const editor = editorComponent?.getEditor?.();
+        if (editor) {
+          const current = editor.getOption(/* fontSize */ 50);
+          editor.updateOptions({ fontSize: (current || 14) + 1 });
+        }
+        break;
+      }
+      case 'zoom-out': {
+        const editor = editorComponent?.getEditor?.();
+        if (editor) {
+          const current = editor.getOption(/* fontSize */ 50);
+          editor.updateOptions({ fontSize: Math.max(8, (current || 14) - 1) });
+        }
+        break;
+      }
+    }
   }
 
   let hasProject = $derived(store.projectDir !== '');
@@ -77,7 +353,11 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<TitleBar hasProject={showWorkspace} onOpenProject={openProject} />
+{#if !webReady && api.isWeb}
+  <!-- Web mode: show project picker (already authenticated via proxy) -->
+  <WebAuth onAuthenticated={onWebReady} />
+{:else}
+  <TitleBar hasProject={showWorkspace} onOpenProject={openProject} />
 
 {#if showWorkspace}
   <div class="workspace">
@@ -167,6 +447,19 @@
 {:else}
   <WelcomeScreen onOpenProject={openProject} />
 {/if}
+
+<!-- Command Palette overlay -->
+{#if showPalette}
+  <CommandPalette
+    mode={paletteMode}
+    onClose={() => showPalette = false}
+    onOpenFile={handlePaletteOpenFile}
+    onCommand={handlePaletteCommand}
+  />
+{/if}
+
+<!-- Notification Toasts -->
+<NotificationToast />
 
 <style>
   .workspace {

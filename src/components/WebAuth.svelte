@@ -1,6 +1,6 @@
 <!--
-  WebAuth.svelte — Project Picker for web/PWA mode
-  Auth is handled by Pangolin before you get here.
+  WebAuth.svelte - Project Picker for web/PWA mode
+  Auth is handled by the reverse proxy before you get here.
   This just lets you pick which directory to edit.
 -->
 
@@ -91,7 +91,7 @@
         <input
           type="text"
           bind:value={customPath}
-          placeholder="/home/zanfiel/myproject"
+          placeholder="~/myproject"
         />
         <button class="go-btn" onclick={openCustomPath} disabled={!customPath.trim()}>
           Open
@@ -99,7 +99,7 @@
       </div>
 
       <button class="skip-btn" onclick={skipProject}>
-        Skip — use Instructor Mode only
+        Skip - use Instructor Mode only
       </button>
     </div>
   {/if}

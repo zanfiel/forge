@@ -312,7 +312,7 @@ async fn ai_chat(message: String, session_id: String) -> ChatResponse {
     }
 }
 
-/// Chat with Synapse (streaming) — emits events to frontend
+/// Chat with Synapse (streaming) - emits events to frontend
 #[tauri::command]
 async fn ai_chat_stream(
     app: tauri::AppHandle,
@@ -404,6 +404,256 @@ async fn engram_search(query: String, limit: i32) -> Result<serde_json::Value, S
     })).await
 }
 
+/// Search file contents across a directory
+#[tauri::command]
+fn search_files(
+    dir: String,
+    query: String,
+    case_sensitive: bool,
+    use_regex: bool,
+    include_pattern: String,
+    exclude_pattern: String,
+) -> SearchResult {
+    use std::io::BufRead;
+
+    let mut all_matches: Vec<SearchMatch> = Vec::new();
+    let mut files_with_matches: std::collections::HashSet<String> = std::collections::HashSet::new();
+    let max_matches = 5000;
+
+    let pattern = if use_regex {
+        query.clone()
+    } else if case_sensitive {
+        regex::escape(&query)
+    } else {
+        format!("(?i){}", regex::escape(&query))
+    };
+
+    let re = match regex::Regex::new(&pattern) {
+        Ok(r) => r,
+        Err(_) => return SearchResult { matches: vec![], total_matches: 0, total_files: 0 },
+    };
+
+    // Build include/exclude globs
+    let include_globs: Vec<glob::Pattern> = include_pattern
+        .split(',')
+        .filter(|s| !s.trim().is_empty())
+        .filter_map(|s| glob::Pattern::new(s.trim()).ok())
+        .collect();
+
+    let exclude_globs: Vec<glob::Pattern> = exclude_pattern
+        .split(',')
+        .filter(|s| !s.trim().is_empty())
+        .filter_map(|s| glob::Pattern::new(s.trim()).ok())
+        .collect();
+
+    fn search_dir(
+        dir: &Path,
+        base: &Path,
+        re: &regex::Regex,
+        matches: &mut Vec<SearchMatch>,
+        files: &mut std::collections::HashSet<String>,
+        max: usize,
+        include: &[glob::Pattern],
+        exclude: &[glob::Pattern],
+        depth: usize,
+    ) {
+        if depth > 10 || matches.len() >= max { return; }
+        let Ok(entries) = fs::read_dir(dir) else { return; };
+
+        for entry in entries.flatten() {
+            if matches.len() >= max { return; }
+            let path = entry.path();
+            let name = entry.file_name().to_string_lossy().to_string();
+
+            // Skip hidden/ignored
+            if name.starts_with('.') { continue; }
+            if IGNORE_DIRS.contains(&name.as_str()) { continue; }
+
+            if path.is_dir() {
+                search_dir(&path, base, re, matches, files, max, include, exclude, depth + 1);
+            } else {
+                let rel = path.strip_prefix(base).unwrap_or(&path).to_string_lossy().to_string();
+
+                // Apply include filter
+                if !include.is_empty() && !include.iter().any(|g| g.matches(&name) || g.matches(&rel)) {
+                    continue;
+                }
+                // Apply exclude filter
+                if exclude.iter().any(|g| g.matches(&name) || g.matches(&rel)) {
+                    continue;
+                }
+
+                // Skip binary files (check first 512 bytes)
+                let Ok(file) = fs::File::open(&path) else { continue; };
+                let reader = std::io::BufReader::new(file);
+                let mut line_num = 0usize;
+
+                for line_result in reader.lines() {
+                    if matches.len() >= max { break; }
+                    line_num += 1;
+
+                    // Only check first line for binary
+                    if line_num == 1 {
+                        if let Ok(ref line) = line_result {
+                            if line.bytes().any(|b| b == 0) {
+                                break; // Binary file, skip
+                            }
+                        }
+                    }
+
+                    let Ok(line) = line_result else { break; };
+
+                    if let Some(m) = re.find(&line) {
+                        let file_path = path.to_string_lossy().to_string();
+                        files.insert(file_path.clone());
+                        let content = if line.len() > 500 { line[..500].to_string() } else { line.clone() };
+                        matches.push(SearchMatch {
+                            file: file_path,
+                            relative_path: rel.clone(),
+                            line: line_num,
+                            column: m.start() + 1,
+                            line_content: content,
+                            match_length: m.len(),
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    let base = PathBuf::from(&dir);
+    search_dir(
+        &base, &base, &re, &mut all_matches, &mut files_with_matches,
+        max_matches, &include_globs, &exclude_globs, 0,
+    );
+
+    let total = all_matches.len();
+    let file_count = files_with_matches.len();
+    SearchResult {
+        matches: all_matches,
+        total_matches: total,
+        total_files: file_count,
+    }
+}
+
+/// Get git status for a directory
+#[tauri::command]
+fn git_status(dir: String) -> GitStatusResult {
+    use std::process::Command;
+
+    let default = GitStatusResult {
+        branch: String::new(),
+        is_repo: false,
+        modified: vec![],
+        staged: vec![],
+        untracked: vec![],
+        ahead: 0,
+        behind: 0,
+    };
+
+    // Check if it's a git repo
+    let output = Command::new("git")
+        .args(["rev-parse", "--is-inside-work-tree"])
+        .current_dir(&dir)
+        .output();
+
+    let Ok(output) = output else { return default; };
+    if !output.status.success() { return default; }
+
+    let mut result = GitStatusResult {
+        branch: String::new(),
+        is_repo: true,
+        modified: vec![],
+        staged: vec![],
+        untracked: vec![],
+        ahead: 0,
+        behind: 0,
+    };
+
+    // Get branch name
+    if let Ok(output) = Command::new("git")
+        .args(["branch", "--show-current"])
+        .current_dir(&dir)
+        .output()
+    {
+        result.branch = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    }
+
+    // Get porcelain status
+    if let Ok(output) = Command::new("git")
+        .args(["status", "--porcelain=v1"])
+        .current_dir(&dir)
+        .output()
+    {
+        let status = String::from_utf8_lossy(&output.stdout);
+        for line in status.lines() {
+            if line.len() < 4 { continue; }
+            let xy = &line[..2];
+            let file = line[3..].to_string();
+            match xy.as_bytes() {
+                [b'?', b'?'] => result.untracked.push(file),
+                [x, y] => {
+                    if *x != b' ' && *x != b'?' { result.staged.push(file.clone()); }
+                    if *y != b' ' && *y != b'?' { result.modified.push(file); }
+                }
+                _ => {}
+            }
+        }
+    }
+
+    // Get ahead/behind
+    if let Ok(output) = Command::new("git")
+        .args(["rev-list", "--left-right", "--count", "HEAD...@{upstream}"])
+        .current_dir(&dir)
+        .output()
+    {
+        let counts = String::from_utf8_lossy(&output.stdout);
+        let parts: Vec<&str> = counts.trim().split('\t').collect();
+        if parts.len() == 2 {
+            result.ahead = parts[0].parse().unwrap_or(0);
+            result.behind = parts[1].parse().unwrap_or(0);
+        }
+    }
+
+    result
+}
+
+// ─── Search / Git Types ─────────────────────────────────
+
+#[derive(Serialize)]
+struct SearchMatch {
+    file: String,
+    #[serde(rename = "relativePath")]
+    relative_path: String,
+    line: usize,
+    column: usize,
+    #[serde(rename = "lineContent")]
+    line_content: String,
+    #[serde(rename = "matchLength")]
+    match_length: usize,
+}
+
+#[derive(Serialize)]
+struct SearchResult {
+    matches: Vec<SearchMatch>,
+    #[serde(rename = "totalMatches")]
+    total_matches: usize,
+    #[serde(rename = "totalFiles")]
+    total_files: usize,
+}
+
+#[derive(Serialize)]
+struct GitStatusResult {
+    branch: String,
+    #[serde(rename = "isRepo")]
+    is_repo: bool,
+    modified: Vec<String>,
+    staged: Vec<String>,
+    untracked: Vec<String>,
+    ahead: u32,
+    behind: u32,
+}
+
 // ─── App Setup ──────────────────────────────────────────
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -421,6 +671,9 @@ pub fn run() {
             read_dir,
             read_file,
             write_file,
+            create_dir,
+            delete_path,
+            rename_path,
             file_stat,
             ai_chat,
             ai_chat_stream,
@@ -428,6 +681,8 @@ pub fn run() {
             engram_context,
             engram_store,
             engram_search,
+            search_files,
+            git_status,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

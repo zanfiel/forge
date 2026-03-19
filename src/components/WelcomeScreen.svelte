@@ -1,5 +1,5 @@
 <!--
-  WelcomeScreen.svelte — Shown when no project is open (Tauri Edition)
+  WelcomeScreen.svelte - Shown when no project is open (Tauri Edition)
 -->
 
 <script lang="ts">

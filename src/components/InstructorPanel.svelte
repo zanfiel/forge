@@ -1,5 +1,5 @@
 <!--
-  InstructorPanel.svelte — Full Coding Instructor
+  InstructorPanel.svelte - Full Coding Instructor
   
   Teaching flow:
   1. Pick a language track
@@ -12,8 +12,9 @@
 
 <script lang="ts">
   import { onMount, tick } from 'svelte';
-  import { store, uid, type ChatMessage } from '../stores/app.svelte.ts';
-  import { tracks, getTrack } from '../lib/tracks';
+  import { store, uid, type ChatMessage, type CodeReview, type CodeReviewItem } from '../stores/app.svelte.ts';
+  import { tracks, getTrack } from '../lib/tracks/index';
+  import { getLangMeta } from '../lib/languages';
   import type { Track, LessonSection, Exercise } from '../stores/app.svelte.ts';
   import * as api from '../lib/api';
 
@@ -75,7 +76,7 @@
     store.instructor.attempts = 0;
 
     // Load the skeleton into a virtual tab in the editor
-    const ext = exercise.language === 'typescript' ? '.ts' : exercise.language === 'python' ? '.py' : '.rs';
+    const ext = getLangMeta(exercise.language).extension;
     const tabName = `exercise${ext}`;
     const tabPath = `__instructor__/${exercise.id}${ext}`;
 
@@ -91,7 +92,7 @@
       name: tabName,
       content: exercise.skeleton,
       modified: false,
-      language: exercise.language === 'typescript' ? 'typescript' : exercise.language === 'python' ? 'python' : 'rust',
+      language: getLangMeta(exercise.language).monacoLang,
     });
     store.activeTabIndex = store.openTabs.length - 1;
   }
@@ -133,11 +134,12 @@ ${studentCode}
 Evaluate the student's code. Respond in this exact JSON format:
 {
   "passed": true/false,
-  "feedback": "Your feedback here — be encouraging, specific, and educational. If wrong, explain WHY without giving the full answer. If close, point out exactly what needs to change. If correct, praise what they did well and mention any style improvements. Keep it 2-4 sentences.",
-  "fixHint": "If failed: one specific hint about what to fix. If passed: null"
+  "feedback": "Your feedback here. Be encouraging, specific, and educational. If wrong, explain WHY without giving the full answer. If close, point out exactly what needs to change. If correct, praise what they did well. Keep it 2-4 sentences.",
+  "fixHint": "If failed: one specific hint about what to fix. If passed: null",
+  "suggestions": ["If passed: 1-3 brief improvement suggestions (style, performance, alternative approaches). If failed: empty array."]
 }
 
-Be strict on correctness but kind in tone. The goal is learning, not gatekeeping. Accept reasonable variations (different variable names, slight formatting differences, alternative approaches that achieve the same result).`;
+Be strict on correctness but kind in tone. The goal is learning, not gatekeeping. Accept reasonable variations (different variable names, slight formatting differences, alternative approaches that achieve the same result). When the code passes, always include at least one suggestion for how they could improve or an alternative approach they should know about.`;
 
     try {
       const resp = await api.chat(prompt, `instructor-${store.sessionId}`);
@@ -155,7 +157,12 @@ Be strict on correctness but kind in tone. The goal is learning, not gatekeeping
           } else {
             store.instructor.status = 'failed';
           }
-          store.instructor.feedback = result.feedback + (result.fixHint ? `\n\n💡 ${result.fixHint}` : '');
+          let fb = result.feedback;
+          if (result.fixHint) fb += `\n\n💡 ${result.fixHint}`;
+          if (result.passed && result.suggestions?.length) {
+            fb += '\n\n✨ **Suggestions:**\n' + result.suggestions.map((s: string) => `- ${s}`).join('\n');
+          }
+          store.instructor.feedback = fb;
         } else {
           store.instructor.feedback = text;
           store.instructor.status = 'failed';
@@ -198,7 +205,7 @@ Be strict on correctness but kind in tone. The goal is learning, not gatekeeping
       exerciseTab.modified = true;
     }
     store.instructor.status = 'passed';
-    store.instructor.feedback = '📖 Solution revealed. Study it carefully — then try the next exercise without peeking!';
+    store.instructor.feedback = '📖 Solution revealed. Study it carefully - then try the next exercise without peeking!';
     // Don't mark as completed when solution is revealed
   }
 
@@ -226,7 +233,7 @@ Concepts: ${currentExercise.concepts.join(', ')}`
 
 The student asks: "${text}"
 
-Explain clearly using simple language. Use code examples. Don't give full solutions to exercises — guide them to figure it out. Keep responses concise (3-6 sentences). If they ask something unrelated, gently redirect to the current exercise.`;
+Explain clearly using simple language. Use code examples. Don't give full solutions to exercises - guide them to figure it out. Keep responses concise (3-6 sentences). If they ask something unrelated, gently redirect to the current exercise.`;
 
     try {
       const resp = await api.chat(prompt, `instructor-chat-${store.sessionId}`);
@@ -253,6 +260,132 @@ Explain clearly using simple language. Use code examples. Don't give full soluti
       e.preventDefault();
       askQuestion();
     }
+  }
+
+  // ─── Code Analysis ──────────────────────
+
+  async function reviewCode() {
+    const tab = store.activeTab;
+    if (!tab || !tab.content?.trim() || store.instructor.reviewing) return;
+
+    store.instructor.reviewing = true;
+    store.instructor.review = null;
+
+    const langMeta = getLangMeta(tab.language || 'text');
+    const code = tab.content;
+    const filename = tab.name || 'untitled';
+
+    const prompt = `You are an expert code reviewer. Analyze this ${langMeta.name} code and provide structured feedback.
+
+FILE: ${filename}
+LANGUAGE: ${langMeta.name}
+
+\`\`\`${langMeta.id}
+${code}
+\`\`\`
+
+Respond in this exact JSON format:
+{
+  "summary": "2-3 sentence overview of the code quality and what it does",
+  "score": <number 1-10, where 10 is production-ready>,
+  "items": [
+    {
+      "type": "<bug|style|pattern|performance|readability>",
+      "severity": "<info|warning|error>",
+      "line": <line number or null if general>,
+      "message": "What the issue is",
+      "suggestion": "How to fix or improve it"
+    }
+  ]
+}
+
+Review guidelines:
+- Be language-aware: apply ${langMeta.name} idioms and conventions
+- Check for: bugs, security issues, style violations, missed patterns, performance concerns, readability
+- For style, follow community standards (PEP 8 for Python, go fmt for Go, rustfmt for Rust, etc.)
+- Suggest better patterns when you see antipatterns (e.g. "use map instead of manual loop")
+- Be specific with line numbers when possible
+- Include positive observations too (type: "pattern", severity: "info")
+- Aim for 3-8 items. Don't nitpick trivial formatting if the code is otherwise solid
+- If the code is excellent, say so and give a high score with fewer items`;
+
+    try {
+      const resp = await api.chat(prompt, `review-${store.sessionId}`);
+      const text = resp.text || resp.error || 'No response from AI';
+
+      try {
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const result = JSON.parse(jsonMatch[0]);
+          store.instructor.review = {
+            filename,
+            language: langMeta.name,
+            summary: result.summary || 'Analysis complete.',
+            score: Math.min(10, Math.max(1, result.score || 5)),
+            items: (result.items || []).map((item: any) => ({
+              type: item.type || 'readability',
+              severity: item.severity || 'info',
+              line: item.line ?? null,
+              message: item.message || '',
+              suggestion: item.suggestion || '',
+            })),
+            timestamp: Date.now(),
+          };
+        } else {
+          store.instructor.review = {
+            filename,
+            language: langMeta.name,
+            summary: text,
+            score: 0,
+            items: [],
+            timestamp: Date.now(),
+          };
+        }
+      } catch {
+        store.instructor.review = {
+          filename,
+          language: langMeta.name,
+          summary: text,
+          score: 0,
+          items: [],
+          timestamp: Date.now(),
+        };
+      }
+    } catch (err: any) {
+      store.instructor.review = {
+        filename,
+        language: langMeta.name,
+        summary: `Could not reach AI: ${err.message}`,
+        score: 0,
+        items: [],
+        timestamp: Date.now(),
+      };
+    }
+
+    store.instructor.reviewing = false;
+    await tick();
+    scrollEl?.scrollTo({ top: scrollEl.scrollHeight, behavior: 'smooth' });
+  }
+
+  function dismissReview() {
+    store.instructor.review = null;
+  }
+
+  function severityIcon(severity: string): string {
+    return severity === 'error' ? '🔴' : severity === 'warning' ? '🟡' : '🔵';
+  }
+
+  function typeIcon(type: string): string {
+    const icons: Record<string, string> = {
+      bug: '🐛', style: '🎨', pattern: '✨', performance: '⚡', readability: '📖',
+    };
+    return icons[type] || '📋';
+  }
+
+  function scoreColor(score: number): string {
+    if (score >= 8) return 'var(--green)';
+    if (score >= 5) return 'var(--yellow)';
+    return 'var(--red, #e04040)';
   }
 
   function typeLabel(type: string): string {
@@ -294,6 +427,14 @@ Explain clearly using simple language. Use code examples. Don't give full soluti
       </div>
       <p class="panel-subtitle">Pick a language. Work through exercises. Write real code.</p>
 
+      <button
+        class="review-code-btn"
+        onclick={reviewCode}
+        disabled={store.instructor.reviewing || !store.activeTab?.content?.trim()}
+      >
+        {store.instructor.reviewing ? '⏳ Analyzing...' : '🔍 Review My Code'}
+      </button>
+
       <div class="track-grid">
         {#each tracks as track}
           <button class="track-card" onclick={() => selectTrack(track.id)}>
@@ -308,6 +449,44 @@ Explain clearly using simple language. Use code examples. Don't give full soluti
           </button>
         {/each}
       </div>
+
+      <!-- Review results on track selection screen -->
+      {#if store.instructor.review}
+        <div class="review-panel">
+          <div class="review-header">
+            <div class="review-title-row">
+              <span class="review-icon">🔍</span>
+              <h4>Code Review</h4>
+              <button class="btn-dismiss" onclick={dismissReview}>✕</button>
+            </div>
+            <div class="review-file">
+              <span class="review-filename">{store.instructor.review.filename}</span>
+              <span class="review-lang">{store.instructor.review.language}</span>
+              <span class="review-score" style="color: {scoreColor(store.instructor.review.score)}">
+                {store.instructor.review.score}/10
+              </span>
+            </div>
+          </div>
+          <p class="review-summary">{store.instructor.review.summary}</p>
+          {#if store.instructor.review.items.length > 0}
+            <div class="review-items">
+              {#each store.instructor.review.items as item}
+                <div class="review-item" data-severity={item.severity}>
+                  <div class="review-item-header">
+                    <span class="review-item-type">{typeIcon(item.type)} {item.type}</span>
+                    <span class="review-item-severity">{severityIcon(item.severity)}</span>
+                    {#if item.line}
+                      <span class="review-item-line">L{item.line}</span>
+                    {/if}
+                  </div>
+                  <p class="review-item-msg">{item.message}</p>
+                  <p class="review-item-fix">{item.suggestion}</p>
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
+      {/if}
     </div>
 
   <!-- ═══════ ACTIVE TRACK ═══════ -->
@@ -434,6 +613,44 @@ Explain clearly using simple language. Use code examples. Don't give full soluti
       </div>
     {/if}
 
+    <!-- ─── Code Review Results ─── -->
+    {#if store.instructor.review}
+      <div class="review-panel">
+        <div class="review-header">
+          <div class="review-title-row">
+            <span class="review-icon">🔍</span>
+            <h4>Code Review</h4>
+            <button class="btn-dismiss" onclick={dismissReview}>✕</button>
+          </div>
+          <div class="review-file">
+            <span class="review-filename">{store.instructor.review.filename}</span>
+            <span class="review-lang">{store.instructor.review.language}</span>
+            <span class="review-score" style="color: {scoreColor(store.instructor.review.score)}">
+              {store.instructor.review.score}/10
+            </span>
+          </div>
+        </div>
+        <p class="review-summary">{store.instructor.review.summary}</p>
+        {#if store.instructor.review.items.length > 0}
+          <div class="review-items">
+            {#each store.instructor.review.items as item}
+              <div class="review-item" data-severity={item.severity}>
+                <div class="review-item-header">
+                  <span class="review-item-type">{typeIcon(item.type)} {item.type}</span>
+                  <span class="review-item-severity">{severityIcon(item.severity)}</span>
+                  {#if item.line}
+                    <span class="review-item-line">L{item.line}</span>
+                  {/if}
+                </div>
+                <p class="review-item-msg">{item.message}</p>
+                <p class="review-item-fix">{item.suggestion}</p>
+              </div>
+            {/each}
+          </div>
+        {/if}
+      </div>
+    {/if}
+
     <!-- ─── Ask a Question (always visible) ─── -->
     <div class="question-area">
       {#if store.instructor.chatMessages.length > 0}
@@ -456,6 +673,14 @@ Explain clearly using simple language. Use code examples. Don't give full soluti
         ></textarea>
         <button class="send-btn" onclick={askQuestion} disabled={!questionText.trim() || store.isAiThinking}>
           {store.isAiThinking ? '⏳' : '?'}
+        </button>
+        <button
+          class="review-btn"
+          onclick={reviewCode}
+          disabled={store.instructor.reviewing || !store.activeTab?.content?.trim()}
+          title="Review the code in your active editor tab"
+        >
+          {store.instructor.reviewing ? '⏳' : '🔍'}
         </button>
       </div>
     </div>
@@ -684,4 +909,110 @@ Explain clearly using simple language. Use code examples. Don't give full soluti
   }
   .send-btn:hover:not(:disabled) { background: var(--accent-hover); }
   .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ─── Review Button (inline) ────────── */
+  .review-btn {
+    width: 32px; height: 32px; border-radius: var(--radius);
+    background: var(--bg-raised); border: 1px solid var(--border);
+    color: var(--text-secondary); font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; flex-shrink: 0;
+  }
+  .review-btn:hover:not(:disabled) {
+    background: var(--bg-hover); border-color: var(--accent); color: var(--accent);
+  }
+  .review-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ─── Review Code Button (track select) ── */
+  .review-code-btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%; padding: 10px 16px; margin-bottom: 16px;
+    background: var(--bg-raised); border: 1px dashed var(--border);
+    border-radius: var(--radius); color: var(--text-secondary);
+    font-size: 13px; font-weight: 500; transition: all 0.2s;
+  }
+  .review-code-btn:hover:not(:disabled) {
+    border-color: var(--accent); border-style: solid;
+    color: var(--accent); background: var(--bg-hover);
+  }
+  .review-code-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ─── Review Panel ──────────────────── */
+  .review-panel {
+    padding: 12px; margin: 8px 12px; animation: fadeIn 0.3s ease-out;
+    background: var(--bg-raised); border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .review-header { margin-bottom: 8px; }
+
+  .review-title-row {
+    display: flex; align-items: center; gap: 6px; margin-bottom: 6px;
+  }
+  .review-title-row h4 { font-size: 13px; font-weight: 600; flex: 1; }
+  .review-icon { font-size: 16px; }
+
+  .btn-dismiss {
+    font-size: 12px; padding: 2px 6px; border-radius: 3px;
+    color: var(--text-muted); transition: all 0.15s;
+  }
+  .btn-dismiss:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+  .review-file {
+    display: flex; align-items: center; gap: 8px; font-size: 11px;
+  }
+  .review-filename {
+    font-family: var(--font-mono); color: var(--text-primary); font-weight: 500;
+  }
+  .review-lang {
+    padding: 1px 6px; border-radius: 3px;
+    background: var(--accent-dim); color: var(--accent); font-size: 10px;
+  }
+  .review-score {
+    font-family: var(--font-mono); font-weight: 700; font-size: 13px; margin-left: auto;
+  }
+
+  .review-summary {
+    font-size: 12px; color: var(--text-secondary); line-height: 1.5;
+    margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+
+  .review-items { display: flex; flex-direction: column; gap: 6px; }
+
+  .review-item {
+    padding: 8px 10px; border-radius: var(--radius-sm);
+    border-left: 3px solid var(--border); font-size: 12px;
+    animation: fadeIn 0.2s ease-out;
+  }
+  .review-item[data-severity="error"] {
+    background: rgba(224, 64, 64, 0.06); border-left-color: var(--red, #e04040);
+  }
+  .review-item[data-severity="warning"] {
+    background: rgba(251, 191, 36, 0.06); border-left-color: var(--yellow);
+  }
+  .review-item[data-severity="info"] {
+    background: rgba(96, 165, 250, 0.06); border-left-color: var(--blue);
+  }
+
+  .review-item-header {
+    display: flex; align-items: center; gap: 6px; margin-bottom: 4px;
+  }
+  .review-item-type {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.3px; color: var(--text-secondary);
+  }
+  .review-item-severity { font-size: 10px; }
+  .review-item-line {
+    font-family: var(--font-mono); font-size: 10px; padding: 1px 5px;
+    background: var(--bg-raised); border-radius: 3px; color: var(--text-muted);
+    margin-left: auto;
+  }
+
+  .review-item-msg {
+    color: var(--text-primary); line-height: 1.4; margin: 0 0 4px;
+  }
+  .review-item-fix {
+    color: var(--accent); font-size: 11px; line-height: 1.4; margin: 0;
+    padding-left: 8px; border-left: 1px solid var(--accent-dim);
+  }
 </style>

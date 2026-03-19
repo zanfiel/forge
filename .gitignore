@@ -5,5 +5,12 @@ release/
 *.exe
 *.log
 .env
+*.bak
+*.tmp
+.DS_Store
+Thumbs.db
+AGENTS.md
+backup-sync-*/
+backup-deps-*/
 backup-public-sync-*/
 backup-public-parity-*/

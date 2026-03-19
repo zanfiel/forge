@@ -1,5 +1,5 @@
 <!--
-  Terminal.svelte — Integrated terminal using xterm.js
+  Terminal.svelte - Integrated terminal using xterm.js
   Desktop: spawns shell via Tauri shell plugin
   Web: connects to /api/terminal WebSocket (placeholder for now)
 -->
