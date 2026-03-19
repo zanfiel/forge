@@ -67,14 +67,20 @@ fn is_within_project(project_dir: &str, path: &str) -> bool {
     let resolved = if candidate.exists() {
         std::fs::canonicalize(candidate).ok()
     } else {
+        let fname = candidate.file_name().unwrap_or_default();
+        // Reject filenames that contain path separators (traversal attempt)
+        if fname.to_string_lossy().contains(['/', '\\']) {
+            return false;
+        }
         candidate
             .parent()
             .and_then(|p| std::fs::canonicalize(p).ok())
-            .map(|p| p.join(candidate.file_name().unwrap_or_default()))
+            .map(|p| p.join(fname))
     };
     let Some(resolved) = resolved else {
         return false;
     };
+    // Final bounds check after all resolution
     resolved.starts_with(&base)
 }
 

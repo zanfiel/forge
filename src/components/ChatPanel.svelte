@@ -10,6 +10,8 @@
   import { store, uid, type ChatMessage, type ToolCall, type PendingEdit, type Checkpoint } from '../stores/app.svelte.ts';
   import * as api from '../lib/api';
   import DiffView from './DiffView.svelte';
+  import { marked } from 'marked';
+  import DOMPurify from 'dompurify';
 
   let { getMonacoEditor = () => null as any }: { getMonacoEditor?: () => any } = $props();
 
@@ -359,15 +361,7 @@
   }
 
   function renderContent(text: string): string {
-    return text
-      .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre class="code-block"><code class="lang-$1">$2</code></pre>')
-      .replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>')
-      .replace(/^### (.+)$/gm, '<h4>$1</h4>')
-      .replace(/^## (.+)$/gm, '<h3>$1</h3>')
-      .replace(/^- (.+)$/gm, '<li>$1</li>')
-      .replace(/\n/g, '<br>');
+    return DOMPurify.sanitize(marked.parse(text, { async: false }) as string);
   }
 </script>
 

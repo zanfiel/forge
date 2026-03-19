@@ -18,8 +18,7 @@
   import { store } from './stores/app.svelte.ts';
   import * as api from './lib/api';
 
-  /** In web mode, show project picker first (no project = show picker) */
-  let webReady = $state(api.isDesktop);
+  let webReady = $state(true);
 
   /** Command Palette state */
   let showPalette = $state(false);
@@ -353,10 +352,6 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-{#if !webReady && api.isWeb}
-  <!-- Web mode: show project picker (already authenticated via proxy) -->
-  <WebAuth onAuthenticated={onWebReady} />
-{:else}
   <TitleBar hasProject={showWorkspace} onOpenProject={openProject} />
 
 {#if showWorkspace}

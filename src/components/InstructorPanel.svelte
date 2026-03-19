@@ -17,6 +17,8 @@
   import { getLangMeta } from '../lib/languages';
   import type { Track, LessonSection, Exercise } from '../stores/app.svelte.ts';
   import * as api from '../lib/api';
+  import { marked } from 'marked';
+  import DOMPurify from 'dompurify';
 
   let scrollEl: HTMLDivElement;
   let questionText = $state('');
@@ -405,14 +407,7 @@ Review guidelines:
   }
 
   function renderMd(text: string): string {
-    return text
-      .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre class="code-block"><code>$2</code></pre>')
-      .replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/^## (.+)$/gm, '<h3>$1</h3>')
-      .replace(/^- (.+)$/gm, '<li>$1</li>')
-      .replace(/\n\n/g, '</p><p>')
-      .replace(/\n/g, '<br>');
+    return DOMPurify.sanitize(marked.parse(text, { async: false }) as string);
   }
 </script>
 
